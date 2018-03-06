@@ -2,7 +2,9 @@ TEMPLATECONF=${TEMPLATECONF:-$PWD/sources/meta-ionel/conf}
 BITBAKEDIR=${BITBAKEDIR:-$PWD/sources/bitbake}
 BUILDDIR=${BUILDDIR:-$PWD/build}
 
-sed -i.bak "s?##PWD##?$PWD?g" $TEMPLATECONF/bblayers.conf.sample
+if [ ! -f $BUILDDIR/conf/bblayers.conf ]; then
+    sed -i.bak "s?##PWD##?$PWD?g" $TEMPLATECONF/bblayers.conf.sample
+fi
 
 function cleanup() {
     if [ -f $TEMPLATECONF/bblayers.conf.sample.bak ]; then
