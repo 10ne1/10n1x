@@ -1,6 +1,6 @@
-Ionel's distro meta layer
+10n1x distro meta layer
 
-This layer depends on:  
+Depends on:
 	- openembedded-core/meta  
 	- meta-openembedded/meta-oe  
 	- meta-openembedded/meta-python  
