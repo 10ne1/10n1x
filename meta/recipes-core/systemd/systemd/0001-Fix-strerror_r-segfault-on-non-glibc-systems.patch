@@ -1,0 +1,92 @@
+From f5193c1cc04a383087d3f56e23eb28e3f6b9f7cd Mon Sep 17 00:00:00 2001
+From: Ioan-Adrian Ratiu <adi@adirat.com>
+Date: Thu, 29 Mar 2018 13:29:03 +0300
+Subject: [PATCH] Fix strerror_r segfault on non-glibc systems
+
+POSIX strerror_r returns an int while the glibc "extension" returns a char* and
+this causes segfaults when running on systems with libc's like musl which only
+implement the portable version or deliberately don't provide a flag to identify
+compiling using their headers.
+
+Glibc provides the POSIX variant of the function, but only if _GNU_SOURCE is
+not set i.e. all gnu extensions are disabled. Meson sets _GNU_SOURCE globally
+at build time.
+
+So detect during build if we have the char* version and #ifdef the logic.
+
+Signed-off-by: Ioan-Adrian Ratiu <adi@adirat.com>
+---
+ meson.build                       | 13 +++++++++++++
+ src/journal/journal-send.c        |  9 +++++++++
+ src/libsystemd/sd-bus/bus-error.c |  9 +++++++++
+ 3 files changed, 31 insertions(+)
+
+diff --git a/meson.build b/meson.build
+index 1ed4dde72..f48355ec6 100644
+--- a/meson.build
++++ b/meson.build
+@@ -372,6 +372,19 @@ if cc.compiles('
+         add_project_arguments('-Werror=shadow', language : 'c')
+ endif
+ 
++if cc.compiles('
++   #include <string.h>
++   int func (void) {
++           char error_string[256];
++           char *ptr = strerror_r(-2, error_string, 256);
++           char c = *strerror_r(-2, error_string, 256);
++           return c != 0 && ptr != (void*) 0L;
++   }
++', name : 'strerror_r() returns char *', args : '-D_GNU_SOURCE')
++        conf.set('STRERROR_R_CHAR_P', 1,
++                  description: 'Defined if strerror_r returns char *')
++endif
++
+ if cc.get_id() == 'clang'
+         foreach arg : ['-Wno-typedef-redefinition',
+                        '-Wno-gnu-variable-sized-type-not-at-end',
+diff --git a/src/journal/journal-send.c b/src/journal/journal-send.c
+index 70bb9e0e8..414a00bee 100644
+--- a/src/journal/journal-send.c
++++ b/src/journal/journal-send.c
+@@ -355,7 +355,16 @@ static int fill_iovec_perror_and_send(const char *message, int skip, struct iove
+                 char* j;
+ 
+                 errno = 0;
++
++#ifdef STRERROR_R_CHAR_P
+                 j = strerror_r(_saved_errno_, buffer + 8 + k, n - 8 - k);
++#else
++                j = buffer + 8 + k;
++                int ret = strerror_r(_saved_errno_, j, n - 8 - k);
++                if (ret)
++                        errno = ret;
++#endif
++
+                 if (errno == 0) {
+                         char error[STRLEN("ERRNO=") + DECIMAL_STR_MAX(int) + 1];
+ 
+diff --git a/src/libsystemd/sd-bus/bus-error.c b/src/libsystemd/sd-bus/bus-error.c
+index 7194be900..b18661481 100644
+--- a/src/libsystemd/sd-bus/bus-error.c
++++ b/src/libsystemd/sd-bus/bus-error.c
+@@ -376,7 +376,16 @@ static void bus_error_strerror(sd_bus_error *e, int error) {
+                         return;
+ 
+                 errno = 0;
++
++#ifdef STRERROR_R_CHAR_P
+                 x = strerror_r(error, m, k);
++#else
++                int ret = strerror_r(error, m, k);
++                if (ret)
++                        errno = ret;
++                x = m;
++#endif
++
+                 if (errno == ERANGE || strlen(x) >= k - 1) {
+                         free(m);
+                         k *= 2;
+-- 
+2.16.3
+
