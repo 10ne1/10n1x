@@ -3,13 +3,15 @@ LCONF_VERSION = "7"
 BBPATH = "${TOPDIR}"
 BBFILES ?= ""
 
+ROOT = "${@os.path.abspath(os.path.join("${TOPDIR}", os.pardir))}"
+
 BBLAYERS ?= " \
-	##PWD##/layers/openembedded-core/meta \
-	##PWD##/layers/meta-openembedded/meta-oe \
-	##PWD##/layers/meta-openembedded/meta-python \
-	##PWD##/layers/meta-openembedded/meta-multimedia \
-	##PWD##/layers/meta-openembedded/meta-networking \
-	##PWD##/layers/meta-openembedded/meta-filesystems \
-	##PWD##/layers/meta-raspberrypi \
-	##PWD##/meta \
+	${ROOT}/layers/openembedded-core/meta \
+	${ROOT}/layers/meta-openembedded/meta-oe \
+	${ROOT}/layers/meta-openembedded/meta-python \
+	${ROOT}/layers/meta-openembedded/meta-multimedia \
+	${ROOT}/layers/meta-openembedded/meta-networking \
+	${ROOT}/layers/meta-openembedded/meta-filesystems \
+	${ROOT}/layers/meta-raspberrypi \
+	${ROOT}/meta \
 "
