@@ -1,0 +1,33 @@
+From 975cfa7dd434e5dab2d2c2a449d2754121eb6f81 Mon Sep 17 00:00:00 2001
+From: Ioan-Adrian Ratiu <adi@adirat.com>
+Date: Fri, 6 Apr 2018 01:41:11 +0300
+Subject: [PATCH] config.mk: remove cross compile incompatible variables
+
+These variables are not safe for cross compilation, let them be
+inherted from the OE environment.
+
+Signed-off-by: Ioan-Adrian Ratiu <adi@adirat.com>
+---
+ config.mk | 10 ----------
+ 1 file changed, 10 deletions(-)
+
+diff --git a/config.mk b/config.mk
+index 46638b5..a4d4d16 100644
+--- a/config.mk
++++ b/config.mk
+@@ -1,12 +1,2 @@
+ # sinit version
+ VERSION = 1.1
+-
+-# paths
+-PREFIX = /usr/local
+-MANPREFIX = $(PREFIX)/share/man
+-
+-CC = cc
+-LD = $(CC)
+-CPPFLAGS =
+-CFLAGS   = -Wextra -Wall -Os
+-LDFLAGS  = -s -static
+-- 
+2.16.3
+

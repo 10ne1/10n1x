@@ -1,0 +1,43 @@
+From 694dbad591b754e5374846a71df50e509ca3b91b Mon Sep 17 00:00:00 2001
+From: Ioan-Adrian Ratiu <adi@adirat.com>
+Date: Fri, 6 Apr 2018 05:12:56 +0300
+Subject: [PATCH] config.mk: remove unsafe for cross-compilation vars
+
+Signed-off-by: Ioan-Adrian Ratiu <adi@adirat.com>
+---
+ Makefile  | 2 +-
+ config.mk | 9 ---------
+ 2 files changed, 1 insertion(+), 10 deletions(-)
+
+diff --git a/Makefile b/Makefile
+index b79e3d8..7f191ea 100644
+--- a/Makefile
++++ b/Makefile
+@@ -40,7 +40,7 @@ config.h:
+ 
+ .o:
+ 	@echo LD $@
+-	@$(LD) -o $@ $< util.a $(LDFLAGS)
++	@$(CC) -o $@ $< util.a $(LDFLAGS)
+ 
+ .c.o:
+ 	@echo CC $<
+diff --git a/config.mk b/config.mk
+index b1e7ae4..f288f84 100644
+--- a/config.mk
++++ b/config.mk
+@@ -1,11 +1,2 @@
+ # smdev version
+ VERSION = 0.2.3
+-
+-# paths
+-PREFIX = /usr/local
+-
+-CC = cc
+-LD = $(CC)
+-CPPFLAGS = -D_BSD_SOURCE -D_GNU_SOURCE
+-CFLAGS   = -std=c99 -Wall -pedantic $(CPPFLAGS)
+-LDFLAGS  = -s
+-- 
+2.16.3
+

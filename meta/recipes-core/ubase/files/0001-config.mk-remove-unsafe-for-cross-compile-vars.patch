@@ -1,0 +1,35 @@
+From 5ab7665905e4cf2d31e6359aba4db8e14457b32e Mon Sep 17 00:00:00 2001
+From: Ioan-Adrian Ratiu <adi@adirat.com>
+Date: Fri, 6 Apr 2018 06:08:57 +0300
+Subject: [PATCH] config.mk: remove unsafe for cross compile vars
+
+These get inherited from the OE env
+
+Signed-off-by: Ioan-Adrian Ratiu <adi@adirat.com>
+---
+ config.mk | 11 -----------
+ 1 file changed, 11 deletions(-)
+
+diff --git a/config.mk b/config.mk
+index 245a590..830ee2a 100644
+--- a/config.mk
++++ b/config.mk
+@@ -1,15 +1,4 @@
+ # ubase version
+ VERSION = 0.1
+ 
+-# paths
+-PREFIX = /usr/local
+-MANPREFIX = $(PREFIX)/share/man
+-
+-CC = cc
+-AR = ar
+ RANLIB = ranlib
+-
+-CPPFLAGS = -D_FILE_OFFSET_BITS=64 -D_XOPEN_SOURCE=700 -D_GNU_SOURCE
+-CFLAGS   = -std=c99 -Wall -Wextra
+-LDLIBS   = -lcrypt
+-LDFLAGS  = -s
+-- 
+2.16.3
+
