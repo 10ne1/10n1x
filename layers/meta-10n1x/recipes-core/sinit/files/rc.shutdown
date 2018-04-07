@@ -1,0 +1,53 @@
+#!/bin/sh
+
+
+killall515delay=4
+killall59delay=4
+
+waitsecs(){
+  numsecs=$1
+  echo -n "Wait $numsecs seconds please "
+  while test $numsecs -gt 0; do
+    sleep 1
+    echo -n "."
+    let numsecs=$numsecs-1
+  done
+  echo
+}
+
+
+shutdown_mode=$1  ## CAPTURE "poweroff" or "reboot"
+
+if test $# -lt 1; then
+   shutdown_mode="poweroff"
+fi
+
+echo "killall5 -15 (requesting)..."
+killall5 -15
+waitsecs $killall515delay
+
+echo "Downing the network..."
+ip link set dev lo down
+ip link set dev eth0 down
+
+echo "Unmounting /dev/pts and /dev/shm..."
+umount /dev/pts
+umount /sys
+umount /proc
+umount /dev/shm
+
+echo "killall5 -9 (murdering)..."
+killall5 -9
+waitsecs $killall59delay
+
+echo "remounting read-only rootfs"
+mount -o remount,ro /
+
+if test "$shutdown_mode" = "reboot"; then
+  echo "rebooting..."
+  /sbin/reboot
+else
+  echo "powering off..."
+  /sbin/poweroff
+fi
+

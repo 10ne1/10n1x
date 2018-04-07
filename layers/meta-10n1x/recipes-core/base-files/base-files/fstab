@@ -1,12 +1,7 @@
-# stock fstab - you probably want to override this with a machine specific one
-
-/dev/root            /                    auto       defaults              1  1
-proc                 /proc                proc       defaults              0  0
-devpts               /dev/pts             devpts     mode=0620,gid=5       0  0
-tmpfs                /run                 tmpfs      mode=0755,nodev,nosuid,strictatime 0  0
-tmpfs                /var/volatile        tmpfs      defaults              0  0
-
-# uncomment this if your device has a SD/MMC/Transflash slot
-/dev/mmcblk0p1       /boot                vfat       defaults              0  0
-
+/dev/root            /                    auto       defaults               1  1
+proc                 /proc                proc       defaults               0  0
+sysfs                /sys                 sysfs      nosuid,noexec,nodev    0  0
+tmpfs                /run                 tmpfs      mode=0755,nodev,nosuid 0  0
+tmpfs                /var/volatile        tmpfs      defaults               0  0
+/dev/mmcblk0p1       /boot                vfat       defaults               0  0
 adi@scw1.adirat.com:/mnt/data1/music /home/adi/music fuse.sshfs ro,_netdev,user,idmap=user,follow_symlinks,transform_symlinks,allow_other,uid=adi,gid=adi,compression=no 0 0

@@ -1,0 +1,46 @@
+From 20de0b30e11d75647f4e4f9cc4d25d6761031724 Mon Sep 17 00:00:00 2001
+From: Ioan-Adrian Ratiu <adi@adirat.com>
+Date: Sat, 7 Apr 2018 04:02:31 +0300
+Subject: [PATCH] mount: don't call realpath on root target
+
+Musl libc realpath implementation calls readlink on a procfs
+path it computes via __procfdname (code at [1] & [2]).
+
+This is problematic if ubase mount is used in a PID 1 because procfs
+is not mounted and the kernel passes the rootfs mounted read-only, so
+the first step is to read-write remount the rootfs, which can't be
+done because procfs is not mounted. Thus we are in a dependency cycle:
+procfs can't be mounted because the root is read-only and so on.
+
+To break this cycle, don't call readlink on "/" (it doesn't really make
+sense anyway) so the rootfs can be remounted read-write, after which
+proc itself can be mounted and the rest of mount calls will succeed
+so systems running ubase + musl can succesfully boot into userspace.
+
+[1] https://git.musl-libc.org/cgit/musl/tree/src/misc/realpath.c?h=v1.1.19
+[2] https://git.musl-libc.org/cgit/musl/tree/src/internal/procfdname.c?h=v1.1.19
+
+Signed-off-by: Ioan-Adrian Ratiu <adi@adirat.com>
+---
+ mount.c | 8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
+
+diff --git a/mount.c b/mount.c
+index 4ce6680..e3d00b8 100644
+--- a/mount.c
++++ b/mount.c
+@@ -242,9 +242,11 @@ main(int argc, char *argv[])
+ 	if (!target) {
+ 		target = argv[0];
+ 		source = NULL;
+-		if (!(resolvpath = realpath(target, NULL)))
+-			eprintf("realpath %s:", target);
+-		target = resolvpath;
++		if (strcmp(target, "/") != 0) {
++			if (!(resolvpath = realpath(target, NULL)))
++				eprintf("realpath %s:", target);
++			target = resolvpath;
++		}
+ 	}
+ 
+ 	for (i = 0; files[i]; i++) {

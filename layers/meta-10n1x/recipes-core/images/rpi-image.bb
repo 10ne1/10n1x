@@ -32,15 +32,14 @@ IMAGE_INSTALL += " \
 	psmisc \
 	scw1play \
 	sed \
+	sinit \
 	sshfs-fuse \
 	strace \
 	sudo \
-	systemd \
-	systemd-compat-units \
-	udev \
+	smdev \
+	ubase \
 	update-alternatives-opkg \
 	user-conf \
-	util-linux \
 	vim-tiny \
 	wget \
 	which \

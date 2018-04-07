@@ -1,0 +1,24 @@
+#!/bin/sh
+
+mount -o remount,rw /
+mount -t proc proc /proc
+mkdir -p /dev/pts
+mount -t devpts devpts /dev/pts
+
+mount -a
+
+#echo /bin/smdev > /proc/sys/kernel/hotplug
+smdev -s
+
+/sbin/iwconfig wlan0 power off &
+
+wpa_supplicant -B -i wlan0 -c /etc/wpa_supplicant/wpa_supplicant-wlan0.conf
+
+dhcpcd &
+
+mkdir -p /var/run/sshd
+/usr/sbin/sshd &
+
+#agetty tty2 9600
+
+/bin/bash

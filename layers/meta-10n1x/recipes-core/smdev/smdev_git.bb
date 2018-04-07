@@ -11,6 +11,12 @@ SRC_URI = "\
 	file://0001-config.mk-remove-unsafe-for-cross-compilation-vars.patch \
 "
 
+PROVIDES = "udev"
+
+RPROVIDES_${PN} = "hotplug udev"
+
+CONFLICT_DISTRO_FEATURES = "systemd"
+
 S = "${WORKDIR}/git"
 
 do_compile() {

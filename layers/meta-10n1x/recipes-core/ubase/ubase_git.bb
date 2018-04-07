@@ -6,10 +6,10 @@ LIC_FILES_CHKSUM = "file://LICENSE;md5=20219e9cef81caa3183e331eed8bc808"
 
 SRCREV = "55795531f03ccb5a41cf80fd564b862c103252cc"
 
-SRC_URI = "\
-	git://git.suckless.org/ubase \
-	file://0001-config.mk-remove-unsafe-for-cross-compile-vars.patch \
-"
+SRC_URI = "git://git.suckless.org/ubase \
+           file://0001-config.mk-remove-unsafe-for-cross-compile-vars.patch \
+           file://0001-mount-don-t-call-realpath-on-root-target.patch \
+           "
 
 S = "${WORKDIR}/git"
 
@@ -21,4 +21,5 @@ do_compile() {
 
 do_install() {
 	oe_runmake install DESTDIR="${D}" MANPREFIX="${mandir}"
+	rm ${D}${base_bindir}/{login,su,mknod,ps,stat,watch,dd,pidof,df}
 }

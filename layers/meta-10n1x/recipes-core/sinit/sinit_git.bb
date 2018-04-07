@@ -9,6 +9,8 @@ SRCREV = "28c44b6b94a870f2942c37f9cfbae8b770595712"
 SRC_URI = "\
 	git://git.suckless.org/sinit \
 	file://0001-config.mk-remove-cross-compile-incompatible-variable.patch \
+	file://rc.init \
+	file://rc.shutdown \
 "
 
 S = "${WORKDIR}/git"
@@ -19,4 +21,11 @@ do_compile() {
 
 do_install() {
 	oe_runmake install DESTDIR="${D}" MANPREFIX="${mandir}"
+
+	install -m 755 ${WORKDIR}/rc.init	${D}${base_bindir}
+	install -m 755 ${WORKDIR}/rc.shutdown	${D}${base_bindir}
+
+	install -d ${D}/${base_sbindir}
+	cd ${D}/${base_sbindir}
+	ln -s /bin/sinit init
 }
