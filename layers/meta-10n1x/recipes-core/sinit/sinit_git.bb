@@ -25,7 +25,6 @@ do_install() {
 	install -m 755 ${WORKDIR}/rc.init	${D}${base_bindir}
 	install -m 755 ${WORKDIR}/rc.shutdown	${D}${base_bindir}
 
-	install -d ${D}/${base_sbindir}
-	cd ${D}/${base_sbindir}
-	ln -s /bin/sinit init
+	cd ${D}/${base_bindir}
+	ln -s sinit init
 }
