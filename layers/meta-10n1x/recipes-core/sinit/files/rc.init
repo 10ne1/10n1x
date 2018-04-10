@@ -21,6 +21,7 @@ mountpoint -q /dev/pts		|| mount -t devpts	devpts	/dev/pts	-o mode=0620,gid=tty,
 mountpoint -q /dev/shm		|| mount -t tmpfs	shm	/dev/shm	-o mode=1777,nosuid,nodev
 mountpoint -q /run		|| mount -t tmpfs	run 	/run		-o mode=0755,nosuid,nodev
 mkdir -p /run/{tmp,lock}
+chmod -R 1777 /run/tmp
 
 echo_color 3 "Setting hostname... "
 hostname -F /etc/hostname
