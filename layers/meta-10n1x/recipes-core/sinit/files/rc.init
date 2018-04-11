@@ -24,8 +24,7 @@ mkdir -p /run/{tmp,lock}
 chmod -R 1777 /run/tmp
 
 echo_color 3 "Setting hostname... "
-hostname -F /etc/hostname
-#cat /etc/hostname >| /proc/sys/kernel/hostname
+cat /etc/hostname >| /proc/sys/kernel/hostname
 
 #echo /bin/smdev > /proc/sys/kernel/hotplug
 smdev -s
