@@ -1,0 +1,4 @@
+Name: udev
+Description: smdev
+Version: %SMDEV_VERSION%
+udevdir=/usr/lib/udev
