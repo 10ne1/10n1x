@@ -1,3 +1,3 @@
 /dev/mmcblk0p2       /                    auto       defaults               1  1
 /dev/mmcblk0p1       /boot                vfat       defaults               0  2
-adi@scw1.adirat.com:/mnt/data1/music /home/adi/music fuse.sshfs ro,_netdev,user,idmap=user,follow_symlinks,transform_symlinks,allow_other,uid=adi,gid=adi,compression=no 0 0
+adi@scw1.adirat.com:/mnt/data1/music /home/adi/music fuse.sshfs ro,_netdev,user,idmap=user,follow_symlinks,transform_symlinks,allow_other,uid=1111,gid=1111,compression=no 0 0
