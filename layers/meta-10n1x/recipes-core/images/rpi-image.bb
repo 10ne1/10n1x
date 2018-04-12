@@ -37,6 +37,7 @@ IMAGE_INSTALL += " \
 	strace \
 	sudo \
 	smdev \
+	syslog-ng \
 	ubase \
 	update-alternatives-opkg \
 	user-conf \
