@@ -29,7 +29,6 @@ IMAGE_INSTALL += " \
 	opkg \
 	polkit \
 	procps \
-	psmisc \
 	scw1play \
 	sed \
 	sinit \

@@ -9,6 +9,7 @@ SRC_URI = "\
 	file://id_rsa.gpg \
 	file://id_rsa.pub \
 	file://authorized_keys \
+	file://ssh_config \
 "
 
 DEPENDS += "gnupg-native"
@@ -26,8 +27,9 @@ do_install() {
 
 	gpg --output ${D}/home/${USER}/.ssh/id_rsa --decrypt ${WORKDIR}/id_rsa.gpg
 	chmod 0600 ${D}/home/${USER}/.ssh/id_rsa
-	install -m 0644 ${WORKDIR}/id_rsa.pub	   ${D}/home/${USER}/.ssh/
-	install -m 0644 ${WORKDIR}/authorized_keys ${D}/home/${USER}/.ssh/
+	install -m 0644 ${WORKDIR}/id_rsa.pub		${D}/home/${USER}/.ssh/
+	install -m 0644 ${WORKDIR}/authorized_keys 	${D}/home/${USER}/.ssh/
+	install -m 0644 ${WORKDIR}/ssh_config		${D}/home/${USER}/.ssh/config
 
 	chown -R ${USER}:${GROUP} ${D}/home/${USER}
 }
