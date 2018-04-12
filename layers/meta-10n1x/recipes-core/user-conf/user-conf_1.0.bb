@@ -17,8 +17,7 @@ inherit allarch useradd extrausers
 
 USERADD_PACKAGES = "${PN}"
 
-USER="${IONEL_USER}"
-GROUP="${IONEL_USER}"
+USER = "adi"
 
 USERADD_PARAM_${PN} = " -u 1111 -m -s /bin/bash -G audio,video,games,tty,lp,shutdown -P ${USER} ${USER}; "
 
