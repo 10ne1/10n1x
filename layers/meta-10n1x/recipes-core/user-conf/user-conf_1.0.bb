@@ -38,5 +38,6 @@ FILES_${PN} += "\
 	/home/${USER}/.ssh/id_rsa.pub \
 	/home/${USER}/.ssh/id_rsa \
 	/home/${USER}/.ssh/authorized_keys \
+	/home/${USER}/.ssh/config \
 	/home/${USER}/music \
 "
