@@ -24,14 +24,22 @@ USERADD_PARAM_${PN} = " -u 1111 -m -s /bin/bash -G audio,video,games,tty,lp,shut
 
 do_install() {
 	install -d ${D}/home/${USER}/{music,.ssh}
+	install -d ${D}/home/root/.ssh
 
-	gpg --output ${D}/home/${USER}/.ssh/id_rsa --decrypt ${WORKDIR}/id_rsa.gpg
-	chmod 0600 ${D}/home/${USER}/.ssh/id_rsa
 	install -m 0644 ${WORKDIR}/id_rsa.pub		${D}/home/${USER}/.ssh/
 	install -m 0644 ${WORKDIR}/authorized_keys 	${D}/home/${USER}/.ssh/
 	install -m 0644 ${WORKDIR}/ssh_config		${D}/home/${USER}/.ssh/config
+	install -m 0644 ${WORKDIR}/ssh_config		${D}/home/root/.ssh/config
+
+	gpg --output ${WORKDIR}/id_rsa --decrypt ${WORKDIR}/id_rsa.gpg
+	install -m 0600 ${WORKDIR}/id_rsa ${D}/home/${USER}/.ssh/id_rsa
+	install -m 0600 ${WORKDIR}/id_rsa ${D}/home/root/.ssh/id_rsa
+	rm ${WORKDIR}/id_rsa
 
 	chown -R ${USER}:${GROUP} ${D}/home/${USER}
+
+	install -d ${D}${sysconfdir}/sudoers.d
+	echo "${USER} ALL=(ALL) NOPASSWD: ALL" > ${D}${sysconfdir}/sudoers.d/001_${USER}
 }
 
 FILES_${PN} += "\
@@ -40,4 +48,6 @@ FILES_${PN} += "\
 	/home/${USER}/.ssh/authorized_keys \
 	/home/${USER}/.ssh/config \
 	/home/${USER}/music \
+	/home/root/.ssh/id_rsa \
+	/home/root/.ssh/config \
 "
