@@ -1,48 +1,43 @@
 #!/bin/sh
 
-echo_color() {
-  color="$1"
-  shift
-  text="$@"
-  printf "\033[1;3${color}m$text\033[00m\n"
-}
-
-echo_color 3 "Mounting root read write... "
+echo "Mounting root read write... "
 mount -o remount,rw /
-echo_color 3 "Done.\n"
 
-echo_color 3 "Mounting virtual filesystems... "
-mount -t proc	proc	/proc		-o nosuid,noexec,nodev
-mount -t sysfs 	sys	/sys		-o nosuid,noexec,nodev
+echo "Mounting virtual filesystems..."
+mount -t proc		proc	/proc			-o nosuid,noexec,nodev
+mount -t sysfs 		sys	/sys			-o nosuid,noexec,nodev
 mount -t debugfs	debugfs	/sys/kernel/debug
-mount -t devtmpfs	dev	/dev		-o mode=0755,nosuid
+mountpoint -q /dev     || mount -t devtmpfs dev	/dev	-o mode=0755,nosuid
 mkdir -p /dev/{pts,shm}
-mount -t devpts	devpts	/dev/pts	-o mode=0620,gid=tty,nosuid,noexec
-mount -t tmpfs	shm	/dev/shm	-o mode=1777,nosuid,nodev
-mount -t tmpfs	run 	/run		-o mode=0755,nosuid,nodev
+mount -t devpts		devpts	/dev/pts		-o mode=0620,gid=tty,nosuid,noexec
+mount -t tmpfs		shm	/dev/shm		-o mode=1777,nosuid,nodev
+mount -t tmpfs		run 	/run			-o mode=0755,nosuid,nodev
 mkdir -p /run/{tmp,lock}
 chmod -R 1777 /run/tmp
 
-echo_color 3 "Setting hostname... "
+echo "Setting hostname..."
 cat /etc/hostname >| /proc/sys/kernel/hostname
 
-#echo /bin/smdev > /proc/sys/kernel/hotplug
+echo "Starting syslog..."
+mkdir -p /var/run/syslog-ng
+[ -f /var/log/messages ] && mv /var/log/messages /var/log/lastboot
+syslog-ng
+
+logger -t "rc.init" "Starting smdev..."
 smdev -s
 
-echo_color 3 "Starting network... "
-/sbin/iwconfig wlan0 power off &
+logger -t "rc.init" "Starting network..."
+/sbin/iwconfig wlan0 power off
 wpa_supplicant -B -i wlan0 -c /etc/wpa_supplicant/wpa_supplicant-wlan0.conf
-dhcpcd &
+dhcpcd
 
-echo_color 3 "Starting sshd... "
+(sleep 30
+logger -t "rc.init" "Mounting fstab filesystems..."
+mount -a) &
+
+logger -t "rc.init" "Starting sshd..."
 mkdir -p /var/run/sshd
-/usr/sbin/sshd &
+/usr/sbin/sshd
 
-echo_color 3 "Mounting fstab filesystems... "
-mount -a
-
-#agetty tty2 9600
-
-echo_color 3 "Init finished"
-
-/bin/bash
+logger -t "rc.init" "Starting agetty..."
+exec agetty tty2 9600 </dev/tty2 >/dev/tty2 2>&1
