@@ -20,6 +20,6 @@ do_compile() {
 }
 
 do_install() {
-	oe_runmake install DESTDIR="${D}" MANPREFIX="${mandir}"
-	rm ${D}${base_bindir}/{login,su,mknod,ps,stat,watch,dd,pidof,df}
+	oe_runmake install DESTDIR="${D}" PREFIX="${prefix}" MANPREFIX="${mandir}"
+	rm ${D}${base_bindir}/{login,su,mknod,ps,stat,watch,dd,pidof,df,lastlog,passwd,id,free,truncate,pwdx,uptime,who}
 }
