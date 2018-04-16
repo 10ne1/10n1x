@@ -27,7 +27,7 @@ do_compile() {
 }
 
 do_install() {
-	oe_runmake install DESTDIR="${D}"
+	oe_runmake install DESTDIR="${D}" PREFIX="${prefix}"
 	install -d ${D}${libdir}/pkgconfig
 	sed 's/%SMDEV_VERSION%/${PV}/' ${WORKDIR}/udev.pc.in > ${D}${libdir}/pkgconfig/udev.pc
 }

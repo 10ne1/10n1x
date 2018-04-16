@@ -20,11 +20,11 @@ do_compile() {
 }
 
 do_install() {
-	oe_runmake install DESTDIR="${D}" MANPREFIX="${mandir}"
+	oe_runmake install DESTDIR="${D}" PREFIX="${prefix}" MANPREFIX="${mandir}"
 
-	install -m 755 ${WORKDIR}/rc.init	${D}${base_bindir}
-	install -m 755 ${WORKDIR}/rc.shutdown	${D}${base_bindir}
+	install -m 755 ${WORKDIR}/rc.init	${D}${bindir}
+	install -m 755 ${WORKDIR}/rc.shutdown	${D}${bindir}
 
-	cd ${D}/${base_bindir}
+	cd ${D}/${bindir}
 	ln -s sinit init
 }
