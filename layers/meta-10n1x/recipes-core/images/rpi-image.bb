@@ -37,7 +37,8 @@ IMAGE_INSTALL += " \
 	sudo \
 	smdev \
 	syslog-ng \
-	ubase \
+	util-linux \
+	util-linux-agetty \
 	update-alternatives-opkg \
 	user-conf \
 	vim-tiny \
