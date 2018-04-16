@@ -28,7 +28,7 @@ CMDLINE_append_raspberrypi3 += "root=/dev/mmcblk0p2 rootfstype=ext4 rootwait"
 DEPENDS_append_raspberrypi3 += "linux-firmware-raspbian"
 
 do_compile_prepend_raspberrypi3() {
-	cp -arv ${STAGING_DIR_TARGET}/lib/firmware/brcm/ ${S}/firmware
+	cp -arv ${STAGING_DIR_TARGET}/usr/lib/firmware/brcm/ ${S}/firmware
 }
 
 kernel_do_deploy_append_raspberrypi3() {
