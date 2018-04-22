@@ -15,29 +15,39 @@ mount -t tmpfs		run 	/run			-o mode=0755,nosuid,nodev
 mkdir -p /run/{tmp,lock}
 chmod -R 1777 /run/tmp
 
+echo "Mounting local filesystems..."
+mount -a -O no_netdev
+
 echo "Setting hostname..."
 cat /etc/hostname >| /proc/sys/kernel/hostname
+
+echo "Setting kernel variables..."
+sysctl -p
+
+echo "Running smdev..."
+smdev -s &
 
 echo "Starting syslog..."
 mkdir -p /var/run/syslog-ng
 [ -f /var/log/messages ] && mv /var/log/messages /var/log/lastboot
 syslog-ng
 
-logger -t "rc.init" "Starting smdev..."
-smdev -s
-
-logger -t "rc.init" "Starting network..."
+logger -t "rc.init" "Configuring network..."
+echo "Configuring network..."
 /sbin/iwconfig wlan0 power off
-wpa_supplicant -d -B -i wlan0 -c /etc/wpa_supplicant/wpa_supplicant-wlan0.conf > /var/log/wpa_supplicant.log 2>&1
-dhcpcd
+[ -f /var/log/wpa_supplicant.log ] && mv /var/log/wpa_supplicant.log /var/log/wpa_supplicant.log.lastboot
+wpa_supplicant -d -B -i wlan0 -c /etc/wpa_supplicant/wpa_supplicant-wlan0.conf > /var/log/wpa_supplicant.log 2>&1 &
+dhcpcd >/dev/null 2>&1 &
 
 (sleep 30
-logger -t "rc.init" "Mounting fstab filesystems..."
-mount -a) &
+logger -t "rc.init" "Mounting remote filesystems..."
+mount -a -O _netdev) &
 
 logger -t "rc.init" "Starting sshd..."
 mkdir -p /var/run/sshd
-/usr/sbin/sshd
+/usr/sbin/sshd &
 
-logger -t "rc.init" "Starting agetty..."
-exec agetty tty2 9600 </dev/tty2 >/dev/tty2 2>&1
+logger -t "rc.init" "Running agetty..."
+while true; do
+	setsid /sbin/agetty --noclear -s 115200 tty1
+done
