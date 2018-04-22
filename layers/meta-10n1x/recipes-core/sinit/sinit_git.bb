@@ -11,6 +11,8 @@ SRC_URI = "\
 	file://0001-config.mk-remove-cross-compile-incompatible-variable.patch \
 	file://rc.init \
 	file://rc.shutdown \
+	file://poweroff \
+	file://reboot \
 "
 
 S = "${WORKDIR}/git"
@@ -24,6 +26,8 @@ do_install() {
 
 	install -m 755 ${WORKDIR}/rc.init	${D}${bindir}
 	install -m 755 ${WORKDIR}/rc.shutdown	${D}${bindir}
+	install -m 755 ${WORKDIR}/reboot	${D}${bindir}
+	install -m 755 ${WORKDIR}/poweroff	${D}${bindir}
 
 	cd ${D}/${bindir}
 	ln -s sinit init
