@@ -10,7 +10,7 @@ LINUX_VERSION = "4.16"
 SRCREV = "${AUTOREV}"
 
 SRC_URI = "\
-	git:///home/adi/workspace/linux;branch=dev/aratiu/master-iqaudio-cherry-pick \
+	git:///home/adi/workspace/linux;branch=linux-4.16.y-rpi \
 	file://defconfig \
 "
 
