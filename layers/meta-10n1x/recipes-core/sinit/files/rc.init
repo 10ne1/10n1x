@@ -28,7 +28,7 @@ smdev -s
 
 logger -t "rc.init" "Starting network..."
 /sbin/iwconfig wlan0 power off
-wpa_supplicant -B -i wlan0 -c /etc/wpa_supplicant/wpa_supplicant-wlan0.conf
+wpa_supplicant -d -B -i wlan0 -c /etc/wpa_supplicant/wpa_supplicant-wlan0.conf > /var/log/wpa_supplicant.log 2>&1
 dhcpcd
 
 (sleep 30
