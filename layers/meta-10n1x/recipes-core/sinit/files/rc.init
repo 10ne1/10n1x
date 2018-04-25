@@ -32,6 +32,9 @@ mkdir -p /var/run/syslog-ng
 [ -f /var/log/messages ] && mv /var/log/messages /var/log/lastboot
 syslog-ng
 
+logger -t "rc.init" "Running postinsts..."
+run-postinsts &
+
 logger -t "rc.init" "Configuring network..."
 echo "Configuring network..."
 /sbin/iwconfig wlan0 power off
