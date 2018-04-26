@@ -35,6 +35,9 @@ syslog-ng
 logger -t "rc.init" "Running postinsts..."
 run-postinsts &
 
+logger -t "rc.init" "Restoring alsa state..."
+alsactl -f /var/lib/alsa/asound.state restore
+
 logger -t "rc.init" "Configuring network..."
 echo "Configuring network..."
 /sbin/iwconfig wlan0 power off
@@ -52,5 +55,5 @@ mkdir -p /var/run/sshd
 
 logger -t "rc.init" "Running agetty..."
 while true; do
-	setsid /sbin/agetty --noclear -s 115200 tty1
+	setsid /sbin/agetty --noclear -s 38400 tty1
 done

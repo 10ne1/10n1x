@@ -22,9 +22,12 @@ if test $# -lt 1; then
    shutdown_mode="poweroff"
 fi
 
+logger -t "rc.init" "Saving alsa state..."
+alsactl -f /var/lib/alsa/asound.state store
+
 echo "killall5 -15 (requesting)..."
-killall5 -15
-waitsecs $killall515delay
+#killall5 -15
+#waitsecs $killall515delay
 
 echo "Downing the network..."
 ip link set dev lo down
@@ -32,24 +35,16 @@ ip link set dev eth0 down
 #ip link set dev wlan0 down
 
 echo "Unmounting /dev/pts and /dev/shm..."
-fusermount3 -u /home/adi/music
+umount /home/adi/music
+umount /boot
 umount /dev/pts
 umount /sys
 umount /proc
 umount /dev/shm
 
 echo "killall5 -9 (murdering)..."
-killall5 -9
-waitsecs $killall59delay
+#killall5 -9
+#waitsecs $killall59delay
 
 echo "remounting read-only rootfs"
 mount -o remount,ro /
-
-if test "$shutdown_mode" = "reboot"; then
-  echo "rebooting..."
-  /sbin/reboot
-else
-  echo "powering off..."
-  /sbin/poweroff
-fi
-
