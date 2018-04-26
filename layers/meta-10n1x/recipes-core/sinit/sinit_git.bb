@@ -13,21 +13,24 @@ SRC_URI = "\
 	file://rc.shutdown \
 	file://poweroff \
 	file://reboot \
+	file://syscall-reboot.c \
 "
 
 S = "${WORKDIR}/git"
 
 do_compile() {
 	oe_runmake
+	cd ${WORKDIR} && ${CC} ${CFLAGS} ${LDFLAGS} syscall-reboot.c -o syscall-reboot
 }
 
 do_install() {
 	oe_runmake install DESTDIR="${D}" PREFIX="${prefix}" MANPREFIX="${mandir}"
 
-	install -m 755 ${WORKDIR}/rc.init	${D}${bindir}
-	install -m 755 ${WORKDIR}/rc.shutdown	${D}${bindir}
-	install -m 755 ${WORKDIR}/reboot	${D}${bindir}
-	install -m 755 ${WORKDIR}/poweroff	${D}${bindir}
+	install -m 755 ${WORKDIR}/rc.init		${D}${bindir}
+	install -m 755 ${WORKDIR}/rc.shutdown		${D}${bindir}
+	install -m 755 ${WORKDIR}/reboot		${D}${bindir}
+	install -m 755 ${WORKDIR}/poweroff		${D}${bindir}
+	install -m 755 ${WORKDIR}/syscall-reboot	${D}${bindir}
 
 	cd ${D}/${bindir}
 	ln -s sinit init

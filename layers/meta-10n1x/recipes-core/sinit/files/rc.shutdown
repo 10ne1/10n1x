@@ -1,50 +1,36 @@
 #!/bin/sh
 
-
-killall515delay=4
-killall59delay=4
-
-waitsecs(){
-  numsecs=$1
-  echo -n "Wait $numsecs seconds please "
-  while test $numsecs -gt 0; do
-    sleep 1
-    echo -n "."
-    let numsecs=$numsecs-1
-  done
-  echo
-}
-
-
 shutdown_mode=$1  ## CAPTURE "poweroff" or "reboot"
-
 if test $# -lt 1; then
    shutdown_mode="poweroff"
 fi
 
-logger -t "rc.init" "Saving alsa state..."
+logger -t "rc.shutdown" "Saving alsa state..."
 alsactl -f /var/lib/alsa/asound.state store
 
-echo "killall5 -15 (requesting)..."
-#killall5 -15
-#waitsecs $killall515delay
+logger -t "rc.shutdown" "Stopping network services..."
+pkill sshd
+pkill dhcpcd
+pkill wpa_supplicant
 
-echo "Downing the network..."
+logger -t "rc.shutdown" "Downing network..."
 ip link set dev lo down
 ip link set dev eth0 down
-#ip link set dev wlan0 down
+ip link set dev wlan0 down
 
-echo "Unmounting /dev/pts and /dev/shm..."
-umount /home/adi/music
-umount /boot
+logger -t "rc.shutdown" "Unmounting virtual filesystems..."
+umount -a -l
 umount /dev/pts
 umount /sys
 umount /proc
 umount /dev/shm
 
-echo "killall5 -9 (murdering)..."
-#killall5 -9
-#waitsecs $killall59delay
+logger -t "rc.shutdown" "Stopping syslog..."
+pkill syslog-ng
 
-echo "remounting read-only rootfs"
+echo "Remounting read-only rootfs"
 mount -o remount,ro /
+
+sleep 1
+
+syscall-reboot $shutdown_mode
