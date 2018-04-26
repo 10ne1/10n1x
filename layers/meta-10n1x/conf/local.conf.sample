@@ -6,7 +6,7 @@ PACKAGE_CLASSES = "package_ipk"
 
 MACHINE ??= "raspberrypi3"
 
-INHERIT += " rm_work "
+INHERIT += "rm_work"
 
 USER_CLASSES ?= "image-mklibs image-prelink"
 
