@@ -18,8 +18,6 @@ inherit allarch useradd extrausers
 
 USERADD_PACKAGES = "${PN}"
 
-USER = "adi"
-
 USERADD_PARAM_${PN} = " -u 1111 -m -s /bin/bash -G audio,video,games,tty,lp,shutdown -P ${USER} ${USER}; "
 
 do_install() {
@@ -51,8 +49,3 @@ FILES_${PN} += "\
 	/home/root/.ssh/id_rsa \
 	/home/root/.ssh/config \
 "
-
-pkg_postinst_${PN}() {
-	NEWLINE=$(cat /etc/shadow | awk -F: -v pass='$6$CGK6SHL6.PJyFk8O$jyOO8BxvxSUfQE6a50SQOmUn3ouAW.z03fWFg69il3bTp7BMFcmc.hZ23z3hPlxlJ2wfJzduFHVGR65NZDBbQ.' '$1 ~ /adi/ {$2 = pass; print $0}' OFS=:)
-	sed -i '/adi/c\'"$NEWLINE" /etc/shadow
-}
