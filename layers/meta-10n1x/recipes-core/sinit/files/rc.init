@@ -18,6 +18,9 @@ chmod -R 1777 /run/tmp
 echo "Setting hostname..."
 cat /etc/hostname >| /proc/sys/kernel/hostname
 
+echo "Rotating logs..."
+logrotate /etc/logrotate.conf
+
 echo "Starting rsyslogd..."
 rsyslogd
 
