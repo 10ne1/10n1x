@@ -25,8 +25,8 @@ umount /sys
 umount /proc
 umount /dev/shm
 
-logger -t "rc.shutdown" "Stopping syslog..."
-pkill syslog-ng
+logger -t "rc.shutdown" "Stopping rsyslogd..."
+pkill rsyslogd
 
 echo "Remounting read-only rootfs"
 mount -o remount,ro /

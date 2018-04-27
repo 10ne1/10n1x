@@ -1,6 +1,3 @@
-# Base this image on core-image-minimal
-#include recipes-core/images/core-image-minimal.bb
-
 LICENSE="MIT"
 
 IMAGE_INSTALL += " \
@@ -36,7 +33,7 @@ IMAGE_INSTALL += " \
 	strace \
 	sudo \
 	smdev \
-	syslog-ng \
+	rsyslogd \
 	util-linux \
 	util-linux-agetty \
 	update-alternatives-opkg \
