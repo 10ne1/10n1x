@@ -33,7 +33,7 @@ IMAGE_INSTALL += " \
 	strace \
 	sudo \
 	smdev \
-	rsyslogd \
+	rsyslog \
 	util-linux \
 	util-linux-agetty \
 	update-alternatives-opkg \
