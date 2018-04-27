@@ -15,9 +15,6 @@ mount -t tmpfs		run 	/run			-o mode=0755,nosuid,nodev
 mkdir -p /run/{tmp,lock}
 chmod -R 1777 /run/tmp
 
-echo "Mounting local filesystems..."
-mount -a -O no_netdev
-
 echo "Setting hostname..."
 cat /etc/hostname >| /proc/sys/kernel/hostname
 
@@ -32,6 +29,9 @@ smdev -s &
 
 logger -t "rc.init" "Running postinsts..."
 run-postinsts &
+
+logger -t "rc.init" "Mounting local filesystems..."
+mount -a -O no_netdev
 
 logger -t "rc.init" "Restoring alsa state..."
 alsactl -f /var/lib/alsa/asound.state restore
