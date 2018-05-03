@@ -54,6 +54,9 @@ logger -t "rc.init" "Starting sshd..."
 mkdir -p /var/run/sshd
 /usr/sbin/sshd &
 
+logger -t "rc.init" "Starting ntpd..."
+/usr/sbin/ntpd &
+
 logger -t "rc.init" "Running agetty..."
 while true; do
 	setsid /sbin/agetty --noclear -s 38400 tty1

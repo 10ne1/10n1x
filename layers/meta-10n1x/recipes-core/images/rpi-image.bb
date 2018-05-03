@@ -20,6 +20,7 @@ IMAGE_INSTALL += " \
 	net-tools \
 	netbase \
 	nethogs \
+	ntpsec \
 	openssh-ssh \
 	openssh-sshd \
 	openssh-scp \
