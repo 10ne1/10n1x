@@ -16,4 +16,7 @@ do_install_append () {
 	nipass=$(gpg --yes --decrypt ${WORKDIR}/NI.gpg)
 	sed -i s/%%CHANGEME1%%/${lulzpass}/ ${D}${sysconfdir}/wpa_supplicant/wpa_supplicant-wlan0.conf
 	sed -i s/%%CHANGEME2%%/${nipass}/   ${D}${sysconfdir}/wpa_supplicant/wpa_supplicant-wlan0.conf
+
+	install -d ${D}${sysconfdir}/systemd/system/multi-user.target.wants
+	ln -sf ${libdir}/systemd/system/wpa_supplicant@.service ${D}${sysconfdir}/systemd/system/multi-user.target.wants/wpa_supplicant@wlan0.service
 }
