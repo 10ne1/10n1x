@@ -10,7 +10,6 @@ sampleformat=S32_LE
 alsadevice=hw:0,0
 hw_buffer=65536
 loops_per_second=1500
-extra_bytes_per_sec=0
 
 tmpdir="/tmp/playhrt"
 
@@ -63,5 +62,4 @@ chrt -f 90 playhrt < $tmpdir/playhrt_fifo \
      -f $sampleformat \
      -n $loops_per_second \
      -c $hw_buffer \
-     -e $extra_bytes_per_sec \
      -D 4000000
