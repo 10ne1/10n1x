@@ -39,16 +39,16 @@ for path in "$@"; do
     for file in $audio_files; do
 	[ -f $tmpdir/do_exit ] && exit 0
 
-	sox "$file" -t raw -e float -b 64 $tmpdir/unpack_fifo &
+	chrt -f 50 sox "$file" -t raw -e float -b 64 $tmpdir/unpack_fifo &
 
 	pipe-size $tmpdir/unpack_fifo 4194304 & # 2^22 ~ 4mb
 
-	resample_soxr -i $(sox --i -r "$file") -o $samplerate \
+	chrt -f 60 resample_soxr -i $(sox --i -r "$file") -o $samplerate \
 	     <$tmpdir/unpack_fifo >$tmpdir/repack_fifo &
 
 	pipe-size $tmpdir/repack_fifo 4194304 & # 2^22 ~ 4mb
 
-	sox -t raw -e float -b 64 -c $channels -r $samplerate \
+	chrt -f 70 sox -t raw -e float -b 64 -c $channels -r $samplerate \
 	     $tmpdir/repack_fifo -e signed -b 32 -t raw $tmpdir/playhrt_fifo
     done
 done &
