@@ -61,5 +61,4 @@ chrt -f 90 playhrt < $tmpdir/playhrt_fifo \
      -s $samplerate \
      -f $sampleformat \
      -n $loops_per_second \
-     -c $hw_buffer \
-     -D 4000000
+     -c $hw_buffer
