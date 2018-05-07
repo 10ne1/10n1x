@@ -62,4 +62,4 @@ taskset -c 3 chrt -f 99 playhrt < $tmpdir/playhrt_fifo \
      -n $loops_per_second \
      -c $hw_buffer \
      -D 2000000 \
-     -e -4
+     -e -13
