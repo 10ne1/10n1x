@@ -3,13 +3,12 @@
 audio_formats="flac\|mp3\|wv" #etc
 
 channels=2
-bitdepth=32
 samplerate=192000
 sampleformat=S32_LE
 
 alsadevice=hw:0,0
-hw_buffer=65536
-loops_per_second=1500
+hw_buffer=2048 # min = 64 max = 65536
+loops_per_second=6000
 
 tmpdir="/tmp/playhrt"
 
@@ -39,26 +38,28 @@ for path in "$@"; do
     for file in $audio_files; do
 	[ -f $tmpdir/do_exit ] && exit 0
 
-	chrt -f 50 sox "$file" -t raw -e float -b 64 $tmpdir/unpack_fifo &
+	taskset -c 1,2 chrt -f 50 sox "$file" -t raw -e float -b 64 $tmpdir/unpack_fifo &
 
-	pipe-size $tmpdir/unpack_fifo 4194304 & # 2^22 ~ 4mb
+	pipe-size $tmpdir/unpack_fifo 2097152 & # 2^21 ~ 2mb
 
-	chrt -f 60 resample_soxr -i $(sox --i -r "$file") -o $samplerate \
+	taskset -c 1,2 chrt -f 60 resample_soxr -i $(sox --i -r "$file") -o $samplerate \
 	     <$tmpdir/unpack_fifo >$tmpdir/repack_fifo &
 
-	pipe-size $tmpdir/repack_fifo 4194304 & # 2^22 ~ 4mb
+	pipe-size $tmpdir/repack_fifo 2097152 & # 2^21 ~ 2mb
 
-	chrt -f 70 sox -t raw -e float -b 64 -c $channels -r $samplerate \
+	taskset -c 1,2 chrt -f 70 sox -t raw -e float -b 64 -c $channels -r $samplerate \
 	     $tmpdir/repack_fifo -e signed -b 32 -t raw $tmpdir/playhrt_fifo
     done
 done &
 
-pipe-size $tmpdir/playhrt_fifo 268435456 & # 2^28 ~ 268mb
+pipe-size $tmpdir/playhrt_fifo 2097152 & # 268435456 & # 2^28 ~ 268mb
 
-chrt -f 90 playhrt < $tmpdir/playhrt_fifo \
+taskset -c 3 chrt -f 99 playhrt < $tmpdir/playhrt_fifo \
      -SMNvv \
      -d $alsadevice \
      -s $samplerate \
      -f $sampleformat \
      -n $loops_per_second \
-     -c $hw_buffer
+     -c $hw_buffer \
+     -D 2000000 \
+     -e -4
