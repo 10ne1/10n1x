@@ -35,6 +35,7 @@ IMAGE_INSTALL += " \
 	sudo \
 	smdev \
 	rsyslog \
+	rt-tests \
 	util-linux \
 	util-linux-agetty \
 	update-alternatives-opkg \
