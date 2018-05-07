@@ -1,0 +1,95 @@
+From 82e57bde73ba2773764662271f32bc4cf17f7e5a Mon Sep 17 00:00:00 2001
+From: Ioan-Adrian Ratiu <adi@adirat.com>
+Date: Mon, 7 May 2018 04:21:48 +0300
+Subject: [PATCH] cyclictest/pi_tests: hack sources to build on musl
+
+SIGEV_THREAD_ID & _sigev_un._tid are glibc internals
+exposed (non-POSIX), rest are just naming conflicts.
+
+Signed-off-by: Ioan-Adrian Ratiu <adi@adirat.com>
+---
+ src/cyclictest/cyclictest.c  | 8 --------
+ src/pi_tests/classic_pi.c    | 5 -----
+ src/pi_tests/pi_stress.c     | 7 +------
+ src/pi_tests/tst-mutexpi10.c | 5 -----
+ 4 files changed, 1 insertion(+), 24 deletions(-)
+
+diff --git a/src/cyclictest/cyclictest.c b/src/cyclictest/cyclictest.c
+index 00e5f3d..1f2a35c 100644
+--- a/src/cyclictest/cyclictest.c
++++ b/src/cyclictest/cyclictest.c
+@@ -1004,14 +1004,6 @@ static void *timerthread(void *param)
+ 	sigaddset(&sigset, par->signal);
+ 	sigprocmask(SIG_BLOCK, &sigset, NULL);
+ 
+-	if (par->mode == MODE_CYCLIC) {
+-		sigev.sigev_notify = SIGEV_THREAD_ID | SIGEV_SIGNAL;
+-		sigev.sigev_signo = par->signal;
+-		sigev.sigev_notify_thread_id = stat->tid;
+-		timer_create(par->clock, &sigev, &timer);
+-		tspec.it_interval = interval;
+-	}
+-
+ 	memset(&schedp, 0, sizeof(schedp));
+ 	schedp.sched_priority = par->prio;
+ 	if (setscheduler(0, par->policy, &schedp))
+diff --git a/src/pi_tests/classic_pi.c b/src/pi_tests/classic_pi.c
+index 695ee4c..ffdc766 100644
+--- a/src/pi_tests/classic_pi.c
++++ b/src/pi_tests/classic_pi.c
+@@ -51,12 +51,7 @@
+ /* test timeout */
+ #define TIMEOUT 2
+ 
+-/* determine if the C library supports Priority Inheritance mutexes */
+-#if defined(_POSIX_THREAD_PRIO_INHERIT) && _POSIX_THREAD_PRIO_INHERIT != -1
+ #define HAVE_PI_MUTEX 1
+-#else
+-#define HAVE_PI_MUTEX 0
+-#endif
+ 
+ int use_pi_mutex = HAVE_PI_MUTEX;
+ 
+diff --git a/src/pi_tests/pi_stress.c b/src/pi_tests/pi_stress.c
+index 36b64ca..56b3ce2 100644
+--- a/src/pi_tests/pi_stress.c
++++ b/src/pi_tests/pi_stress.c
+@@ -76,12 +76,7 @@
+ /* test timeout */
+ #define TIMEOUT 2
+ 
+-/* determine if the C library supports Priority Inheritance mutexes */
+-#if defined(_POSIX_THREAD_PRIO_INHERIT) && _POSIX_THREAD_PRIO_INHERIT != -1
+ #define HAVE_PI_MUTEX 1
+-#else
+-#define HAVE_PI_MUTEX 0
+-#endif
+ 
+ #if HAVE_PI_MUTEX == 0
+ #error "Can't run this test without PI Mutex support"
+@@ -396,7 +391,7 @@ setup_thread_attr(pthread_attr_t * attr, struct sched_attr * sa,
+ 		     status);
+ 		return FAILURE;
+ 	}
+-	status = pthread_attr_setaffinity_np(attr, sizeof(cpu_set_t), mask);
++	status = pthread_setaffinity_np(attr, sizeof(cpu_set_t), mask);
+ 	if (status) {
+ 		pi_error("setup_thread_attr: setting affinity attribute: 0x%x\n",
+ 		      status);
+diff --git a/src/pi_tests/tst-mutexpi10.c b/src/pi_tests/tst-mutexpi10.c
+index a63ea23..b78d464 100644
+--- a/src/pi_tests/tst-mutexpi10.c
++++ b/src/pi_tests/tst-mutexpi10.c
+@@ -53,12 +53,7 @@
+ /* test timeout */
+ #define TIMEOUT 2
+ 
+-/* determine if the C library supports Priority Inheritance mutexes */
+-#if defined(_POSIX_THREAD_PRIO_INHERIT) && _POSIX_THREAD_PRIO_INHERIT != -1
+ #define HAVE_PI_MUTEX 1
+-#else
+-#define HAVE_PI_MUTEX 0
+-#endif
+ 
+ int use_pi_mutex = HAVE_PI_MUTEX;
+ 
