@@ -7,8 +7,8 @@ samplerate=192000
 sampleformat=S32_LE
 
 alsadevice=hw:0,0
-hw_buffer=2048 # min = 64 max = 65536
-loops_per_second=6000
+hw_buffer=65536
+loops_per_second=10000
 
 tmpdir="/tmp/playhrt"
 
@@ -52,7 +52,7 @@ for path in "$@"; do
     done
 done &
 
-pipe-size $tmpdir/playhrt_fifo 2097152 & # 268435456 & # 2^28 ~ 268mb
+pipe-size $tmpdir/playhrt_fifo $((2**24)) & # 2^24 ~ 16 mb
 
 taskset -c 3 chrt -f 99 playhrt < $tmpdir/playhrt_fifo \
      -SMNvv \
@@ -60,6 +60,4 @@ taskset -c 3 chrt -f 99 playhrt < $tmpdir/playhrt_fifo \
      -s $samplerate \
      -f $sampleformat \
      -n $loops_per_second \
-     -c $hw_buffer \
-     -D 2000000 \
-     -e -13
+     -c $hw_buffer
