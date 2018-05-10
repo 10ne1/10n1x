@@ -1,0 +1,139 @@
+From e6a630cac8cc66b72e9f154f21987a4c854c622b Mon Sep 17 00:00:00 2001
+From: Ioan-Adrian Ratiu <adi@adirat.com>
+Date: Thu, 10 May 2018 15:41:39 +0300
+Subject: [PATCH] playhrt: simplify mmap writeloop
+
+Signed-off-by: Ioan-Adrian Ratiu <adi@adirat.com>
+---
+ src/playhrt.c | 84 ++++++++-------------------------------------------
+ src/version.h |  1 +
+ 2 files changed, 13 insertions(+), 72 deletions(-)
+ create mode 100644 src/version.h
+
+diff --git a/src/playhrt.c b/src/playhrt.c
+index 7d18ba9..c4a03e6 100644
+--- a/src/playhrt.c
++++ b/src/playhrt.c
+@@ -750,15 +750,13 @@ int main(int argc, char *argv[])
+                          mtime.tv_sec, mtime.tv_nsec);
+       sumavg= 0;
+       checktime = 0;
+-      for (count=1, off=looperr; 1; count++, off+=looperr) {
+-          /* start playing when half of hwbuffer is filled */
+-          if (count == startcount)  snd_pcm_start(pcm_handle);
++      for (count=1; 1; count++) {
++	  if (count == startcount) {
++		  fprintf(stdout, "%d\n", 0);
++		  snd_pcm_start(pcm_handle);
++	  }
+ 
+           frames = olen;
+-          if (off > 1.0) {
+-              frames++;
+-              off -= 1.0;
+-          }
+           avail = snd_pcm_avail_update(pcm_handle);
+           err = snd_pcm_mmap_begin(pcm_handle, &areas, &offset, &frames);
+           if (err < 0) {
+@@ -766,49 +764,12 @@ int main(int argc, char *argv[])
+               exit(21);
+           }
+ 
+-          /* do some statistics to check average hwbuffer space available
+-             to check and improve --extra-bytes-per-second parameter */
+-          if (dobufstats && count > startcount && count % 4096 == 0) {
+-              sumavg = 16;
+-              avgav = 0;
+-          }
+-          if (sumavg) {
+-              avgav += avail;
+-              if (sumavg == 1) {
+-                  if (verbose > 1)
+-                      fprintf(stderr, "playhrt: Average available buffer: %ld (%ld sec %ld nsec).\n", avgav/16, mtime.tv_sec, mtime.tv_nsec);
+-                  if (checktime == 0.0 && count > startcount+30000) {
+-                       checktime = 1.0*mtime.tv_sec + mtime.tv_nsec/1000000000.0;
+-                       checkav = avgav/16;
+-                       corr = 1;
+-                  }
+-                  if (corr && avgav/16 > checkav + hwbufsize*3/10) {
+-                       extrabps += (double)((avgav/16-checkav)*bytesperframe)/(mtime.tv_sec*1.0+mtime.tv_nsec/1000000000.0-checktime);
+-                       extraerr = 1.0*bytesperframe*rate;
+-                       extraerr = extraerr/(extraerr+extrabps);
+-                       nsec = (int) (1000000000*extraerr/loopspersec);
+-                       corr = 0;
+-                       fprintf(stderr, "playhrt: Avoiding buffer underrun! Please use option \n"
+-                               "      --extra-bytes-per-second=%d\n"
+-                               "on next call.\n", (int)extrabps);
+-                  }
+-                  if (corr && avgav/16 < checkav - hwbufsize*3/10) {
+-                       extrabps += (double)((avgav/16-checkav)*bytesperframe)/(mtime.tv_sec*1.0+mtime.tv_nsec/1000000000.0-checktime);
+-                       extraerr = 1.0*bytesperframe*rate;
+-                       extraerr = extraerr/(extraerr+extrabps);
+-                       nsec = (int) (1000000000*extraerr/loopspersec);
+-                       corr = 0;
+-                       fprintf(stderr, "playhrt: Avoiding buffer overrun! Please use option \n"
+-                               "      --extra-bytes-per-second=%d\n"
+-                               "on next call.\n", (int)extrabps);
+-                  }
+-              }
+-              sumavg--;
+-          }
++	  if (verbose)
++            fprintf(stdout, "%ld\n", avail);
+ 
+           ilen = frames * bytesperframe;
+           iptr = areas[0].addr + offset * bytesperframe;
+-          /*memclean(iptr, ilen);  commented out to save some CPU-time */
++          memclean(iptr, ilen);
+           /* in --mmap mode we read directly into mmaped space without internal buffer */
+           s = read(sfd, iptr, ilen);
+ 
+@@ -822,37 +783,16 @@ int main(int argc, char *argv[])
+ 
+           /* we refresh the new data before and directly after the  sleep before commiting */
+           refreshmem(iptr, s);
+-
+-          /* debug:  check that we really sleep to some time in the future */
+-          if (countdelay) {
+-            clock_gettime(CLOCK_MONOTONIC, &mtimecheck);
+-            if (mtimecheck.tv_sec > mtime.tv_sec || (mtimecheck.tv_sec == mtime.tv_sec && mtimecheck.tv_nsec > mtime.tv_nsec))
+-                nrdelays += 1;
+-          }
+-          if (verbose > 1 && nrdelays > 0 && count % 4096 == 0) {
+-              fprintf(stderr, "playhrt: Number of delayed loops: %ld (%ld sec %ld nsec).\n", nrdelays, mtime.tv_sec, mtime.tv_nsec);
+-          }
+-
+           clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &mtime, NULL);
+ 	  refreshmem(iptr, s);
+           snd_pcm_mmap_commit(pcm_handle, offset, frames);
+-          if (s < 0) {
+-              fprintf(stderr, "playhrt: Read error.\n");
+-              exit(22);
+-          } else if (s < ilen) {
+-              badreads++;
+-              readmissing += (ilen-s);
+-              if (verbose)
+-                  fprintf(stderr, "playhrt: Bad read, %ld bytes missing at %ld.%ld.\n", (ilen-s), mtime.tv_sec, mtime.tv_nsec);
+-              if (badreads >= maxbad) {
+-                  fprintf(stderr, "playhrt: Had %d bad reads . . . exiting.\n", maxbad);
+-                  break;
+-              }
+-          }
++
+           icount += s;
+           ocount += s;
+-          if (s == 0) /* done */
++          if (s == 0) {
++              fprintf(stderr, "Done reading.\n");
+               break;
++	  }
+       }
+     }
+     /* cleanup network connection and sound device */
+diff --git a/src/version.h b/src/version.h
+new file mode 100644
+index 0000000..748a9df
+--- /dev/null
++++ b/src/version.h
+@@ -0,0 +1 @@
++#define VERSION "0.8"
