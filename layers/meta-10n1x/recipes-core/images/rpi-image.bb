@@ -48,7 +48,7 @@ IMAGE_INSTALL += " \
 
 IMAGE_FEATURES += "package-management"
 
-IMAGE_OVERHEAD_FACTOR = "1.8"
+IMAGE_OVERHEAD_FACTOR = "5"
 
 inherit image
 
