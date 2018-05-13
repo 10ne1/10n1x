@@ -6,7 +6,7 @@ LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/MIT;md5=0835ade698e0bcf8506ecda
 
 SRC_URI = "file://scw1play.sh"
 
-RDEPENDS_${PN} = "bash sox frankl-stereo pipe-size"
+RDEPENDS_${PN} = "bash sox frankl-stereo pipe-size fuser"
 
 do_install() {
     install -d ${D}${bindir}

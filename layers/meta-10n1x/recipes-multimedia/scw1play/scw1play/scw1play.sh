@@ -14,6 +14,7 @@ tmpdir="/tmp/playhrt"
 
 cleanup() {
     touch $tmpdir/do_exit
+    fuser -k -w $tmpdir/{unpack,repack,playhrt}_fifo
     pkill pipe-size
     pkill sox
     pkill scw1play.sh
