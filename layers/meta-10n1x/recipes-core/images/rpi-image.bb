@@ -25,7 +25,6 @@ IMAGE_INSTALL += " \
 	openssh-sshd \
 	openssh-scp \
 	opkg \
-	polkit \
 	procps \
 	scw1play \
 	sed \
