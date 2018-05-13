@@ -1,14 +1,7 @@
 #!/bin/bash
 
-audio_formats="flac\|mp3\|wv" #etc
-
-channels=2
-samplerate=192000
-sampleformat=S32_LE
-
-alsadevice=hw:0,0
-hw_buffer=65536
-loops_per_second=10000
+hw_buffer=24000 # 32768 # 65536
+wakeup_ns=125000
 
 tmpdir="/tmp/playhrt"
 
@@ -32,8 +25,8 @@ for path in "$@"; do
 	echo "WARNING: '$path' does not exist" && \
 	continue
 
-    audio_files=$(find "$path" -type f | grep -ie "$audio_formats" | sort -V)
-    echo Playing $'\n'"$audio_files"
+    audio_files=$(find "$path" -type f | grep -ie "flac\|mp3\|wv\|ogg" | sort -V)
+    >&2 echo Playing $'\n'"$audio_files"
 
     IFS=$'\n'
     for file in $audio_files; do
@@ -43,22 +36,21 @@ for path in "$@"; do
 
 	pipe-size $tmpdir/unpack_fifo 2097152 & # 2^21 ~ 2mb
 
-	taskset -c 1,2 chrt -f 60 resample_soxr -i $(sox --i -r "$file") -o $samplerate \
+	taskset -c 1,2 chrt -f 60 resample_soxr -i $(sox --i -r "$file") -o 192000 \
 	     <$tmpdir/unpack_fifo >$tmpdir/repack_fifo &
 
 	pipe-size $tmpdir/repack_fifo 2097152 & # 2^21 ~ 2mb
 
-	taskset -c 1,2 chrt -f 70 sox -t raw -e float -b 64 -c $channels -r $samplerate \
+	taskset -c 1,2 chrt -f 70 sox -t raw -e float -b 64 -r 192000 \
 	     $tmpdir/repack_fifo -e signed -b 32 -t raw $tmpdir/playhrt_fifo
     done
 done &
 
-pipe-size $tmpdir/playhrt_fifo $((2**24)) & # 2^24 ~ 16 mb
+pipe-size $tmpdir/playhrt_fifo $((2**25)) & # 2^24 ~ 16 mb
 
 taskset -c 3 chrt -f 99 playhrt < $tmpdir/playhrt_fifo \
-     -SMNvv \
-     -d $alsadevice \
-     -s $samplerate \
-     -f $sampleformat \
-     -n $loops_per_second \
-     -c $hw_buffer
+     -v \
+     -d "hw:0,0" \
+     -n $wakeup_ns \
+     -c $hw_buffer \
+     -D 2000000
