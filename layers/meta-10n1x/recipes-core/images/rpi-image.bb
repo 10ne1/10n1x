@@ -58,3 +58,5 @@ set_user_pass() {
 }
 
 ROOTFS_POSTPROCESS_COMMAND += "set_user_pass; "
+
+DEPENDS_remove += "${MLPREFIX}qemuwrapper-cross"
