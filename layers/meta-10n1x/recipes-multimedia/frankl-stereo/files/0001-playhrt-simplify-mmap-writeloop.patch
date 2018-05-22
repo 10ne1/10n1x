@@ -1,4 +1,4 @@
-From 18cbd509a5821083d84a5d7bc3f8923d92967053 Mon Sep 17 00:00:00 2001
+From 2b6969f35aa906670d8e7b8a5087fc68b4e167c8 Mon Sep 17 00:00:00 2001
 From: Ioan-Adrian Ratiu <adi@adirat.com>
 Date: Thu, 10 May 2018 15:41:39 +0300
 Subject: [PATCH] playhrt: simplify mmap writeloop
@@ -6,13 +6,13 @@ Subject: [PATCH] playhrt: simplify mmap writeloop
 Signed-off-by: Ioan-Adrian Ratiu <adi@adirat.com>
 
 ---
- src/playhrt.c | 1069 ++++++++++---------------------------------------
+ src/playhrt.c | 1073 ++++++++++---------------------------------------
  src/version.h |    1 +
- 2 files changed, 208 insertions(+), 862 deletions(-)
+ 2 files changed, 212 insertions(+), 862 deletions(-)
  create mode 100644 src/version.h
 
 diff --git a/src/playhrt.c b/src/playhrt.c
-index 7d18ba9..13c57e5 100644
+index 7d18ba9..8983e42 100644
 --- a/src/playhrt.c
 +++ b/src/playhrt.c
 @@ -1,16 +1,4 @@
@@ -32,7 +32,7 @@ index 7d18ba9..13c57e5 100644
  #include <getopt.h>
  #include <stdio.h>
  #include <stdlib.h>
-@@ -20,858 +8,215 @@ http://www.gnu.org/licenses/gpl.txt for license details.
+@@ -20,858 +8,219 @@ http://www.gnu.org/licenses/gpl.txt for license details.
  #include <alsa/asoundlib.h>
  #include "cprefresh.h"
  
@@ -1065,6 +1065,7 @@ index 7d18ba9..13c57e5 100644
 +		ilen = frames * bytesperframe;
 +		iptr = areas[0].addr + offset * bytesperframe;
 +
++		memclean(iptr, ilen);
 +		s = read(0, iptr, ilen);
 +
 +		/* compute time for next wakeup */
@@ -1075,8 +1076,11 @@ index 7d18ba9..13c57e5 100644
 +		}
 +
 +		refreshmem(iptr, s);
++
 +		clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &mtime, NULL);
-+		clock_gettime(CLOCK_MONOTONIC, &nowtime);
++		if (verbose)
++			clock_gettime(CLOCK_MONOTONIC, &nowtime);
++
 +		refreshmem(iptr, s);
 +		snd_pcm_mmap_commit(pcm_handle, offset, frames);
 +
