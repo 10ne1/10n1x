@@ -1,4 +1,4 @@
-From 59c519581ad23d6e7839c0454bb537ee7a97e4f0 Mon Sep 17 00:00:00 2001
+From 18cbd509a5821083d84a5d7bc3f8923d92967053 Mon Sep 17 00:00:00 2001
 From: Ioan-Adrian Ratiu <adi@adirat.com>
 Date: Thu, 10 May 2018 15:41:39 +0300
 Subject: [PATCH] playhrt: simplify mmap writeloop
@@ -6,13 +6,13 @@ Subject: [PATCH] playhrt: simplify mmap writeloop
 Signed-off-by: Ioan-Adrian Ratiu <adi@adirat.com>
 
 ---
- src/playhrt.c | 1044 +++++++++----------------------------------------
+ src/playhrt.c | 1069 ++++++++++---------------------------------------
  src/version.h |    1 +
- 2 files changed, 181 insertions(+), 864 deletions(-)
+ 2 files changed, 208 insertions(+), 862 deletions(-)
  create mode 100644 src/version.h
 
 diff --git a/src/playhrt.c b/src/playhrt.c
-index 7d18ba9..c81f565 100644
+index 7d18ba9..13c57e5 100644
 --- a/src/playhrt.c
 +++ b/src/playhrt.c
 @@ -1,16 +1,4 @@
@@ -32,7 +32,7 @@ index 7d18ba9..c81f565 100644
  #include <getopt.h>
  #include <stdio.h>
  #include <stdlib.h>
-@@ -20,858 +8,186 @@ http://www.gnu.org/licenses/gpl.txt for license details.
+@@ -20,858 +8,215 @@ http://www.gnu.org/licenses/gpl.txt for license details.
  #include <alsa/asoundlib.h>
  #include "cprefresh.h"
  
@@ -277,8 +277,16 @@ index 7d18ba9..c81f565 100644
 -"\n"
 -);
 -}
--
--
++#define USEC_PER_SEC 1000000
+ 
++static inline int64_t calcdiff(struct timespec t1, struct timespec t2)
++{
++	int64_t diff;
++	diff = USEC_PER_SEC * (long long)((int) t1.tv_sec - (int) t2.tv_sec);
++	diff += ((int) t1.tv_nsec - (int) t2.tv_nsec) / 1000;
++	return diff;
++}
+ 
  int main(int argc, char *argv[])
  {
 -    int sfd, s, moreinput, err, verbose, nrchannels, startcount, sumavg,
@@ -888,10 +896,10 @@ index 7d18ba9..c81f565 100644
 -                    count, nrdelays, icount, ocount, badloops, badframes, badreads, readmissing);
 -    }
 -    return 0;
-+	int s, err, verbose, nrchannels;
++	int s,verbose, nrchannels;
 +	long ilen, loopspersec, sleep, nsec;
 +	void *iptr;
-+	struct timespec mtime;
++	struct timespec mtime, nowtime;
 +	snd_pcm_t *pcm_handle;
 +	snd_pcm_hw_params_t *hwparams;
 +	snd_pcm_sw_params_t *swparams;
@@ -901,6 +909,7 @@ index 7d18ba9..c81f565 100644
 +	snd_pcm_uframes_t hwbufsize, periodsize, offset, frames, olen;
 +	snd_pcm_sframes_t avail;
 +	const snd_pcm_channel_area_t *areas;
++	FILE *buffill, *wakeupdelay;
 +
 +	/* read command line options */
 +	static struct option longoptions[] = {{"wakeup-nec", required_argument, 0,  'n' },
@@ -1031,25 +1040,31 @@ index 7d18ba9..c81f565 100644
 +		exit(19);
 +	}
 +
-+	if (verbose)
++	if (verbose) {
 +		fprintf(stderr, "Step size: %ld nsec, Chunk size: %ld bytes, Hwbuf size: %ld bytes.\n", nsec, ilen, hwbufsize);
++		buffill = fopen("buffill.dat", "w");
++		wakeupdelay =  fopen("wakeupdelay.dat", "w");
++	}
 +
 +	do {
 +		frames = olen;
 +
 +		avail = snd_pcm_avail_update(pcm_handle);
-+		if (verbose)
-+			printf("%ld\n", avail);
++		if (avail < 0) {
++			fprintf(stderr, "ERROR: %s (%d)\n", strerror(avail), avail);
++			break;
++		}
++
 +		if (!started && avail <= hwbufsize/2) {
 +			snd_pcm_start(pcm_handle);
 +			started = 1;
 +		}
 +
 +		snd_pcm_mmap_begin(pcm_handle, &areas, &offset, &frames);
++
 +		ilen = frames * bytesperframe;
 +		iptr = areas[0].addr + offset * bytesperframe;
 +
-+		memclean(iptr, ilen);
 +		s = read(0, iptr, ilen);
 +
 +		/* compute time for next wakeup */
@@ -1061,12 +1076,24 @@ index 7d18ba9..c81f565 100644
 +
 +		refreshmem(iptr, s);
 +		clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &mtime, NULL);
++		clock_gettime(CLOCK_MONOTONIC, &nowtime);
 +		refreshmem(iptr, s);
 +		snd_pcm_mmap_commit(pcm_handle, offset, frames);
++
++		if (verbose) {
++			fprintf(buffill, "%ld\n", avail);
++			fprintf(wakeupdelay, "%lld\n", calcdiff(nowtime,mtime));
++		}
 +	} while (s>0);
 +
 +	snd_pcm_drain(pcm_handle);
 +	snd_pcm_close(pcm_handle);
++
++	if (verbose) {
++		fclose(buffill);
++		fclose(wakeupdelay);
++	}
++
 +	return 0;
  }
 -
