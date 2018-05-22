@@ -20,8 +20,6 @@ TARGET_CC_ARCH += "${LDFLAGS}"
 
 do_compile() {
     oe_runmake REFRESH=VFP
-    oe_runmake REFRESH=VFP resampler
-    oe_runmake REFRESH=VFP bin/cat64
 }
 
 do_install() {

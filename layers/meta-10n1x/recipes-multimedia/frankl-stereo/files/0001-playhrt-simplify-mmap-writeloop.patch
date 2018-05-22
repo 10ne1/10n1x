@@ -1,4 +1,4 @@
-From 2b6969f35aa906670d8e7b8a5087fc68b4e167c8 Mon Sep 17 00:00:00 2001
+From 15e7bfc01b5c4dc01af15a72aecce7f3297d8708 Mon Sep 17 00:00:00 2001
 From: Ioan-Adrian Ratiu <adi@adirat.com>
 Date: Thu, 10 May 2018 15:41:39 +0300
 Subject: [PATCH] playhrt: simplify mmap writeloop
@@ -6,11 +6,79 @@ Subject: [PATCH] playhrt: simplify mmap writeloop
 Signed-off-by: Ioan-Adrian Ratiu <adi@adirat.com>
 
 ---
+ Makefile      |   28 +-
  src/playhrt.c | 1073 ++++++++++---------------------------------------
  src/version.h |    1 +
- 2 files changed, 212 insertions(+), 862 deletions(-)
+ 3 files changed, 223 insertions(+), 879 deletions(-)
  create mode 100644 src/version.h
 
+diff --git a/Makefile b/Makefile
+index 5ce374a..29f4bae 100644
+--- a/Makefile
++++ b/Makefile
+@@ -6,13 +6,10 @@ REFRESH=""
+ ARCH=$(shell uname -m)
+ 
+ # normal CFLAGS
+-CFLAGS=-O2 -Wall -fgnu89-inline -DREFRESH$(REFRESH)
+-
+-# CFLAGS without optimization
+-CFLAGSNO=-O0 -Wall -fgnu89-inline -DREFRESH$(REFRESH)
++CFLAGS=-O3 -Wall -fgnu89-inline -DREFRESH$(REFRESH)
+ 
+ # targets
+-ALL: bin tmp bin/volrace bin/bufhrt bin/highrestest \
++ALL: bin tmp bin/volrace bin/bufhrt bin/highrestest resampler bin/cat64 \
+      bin/writeloop bin/catloop bin/playhrt bin/cptoshm bin/shmcat
+ 
+ bin:
+@@ -32,30 +29,30 @@ tmp/net.o: src/net.h src/net.c |tmp
+ 
+ tmp/cprefresh_ass.o: src/cprefresh_default.s src/cprefresh_vfp.s src/cprefresh_arm.s |tmp 
+ 	if [ $(REFRESH) = "" ]; then \
+-	  $(CC) -c $(CFLAGSNO) -o tmp/cprefresh_ass.o src/cprefresh_default.s; \
++	  $(CC) -c $(CFLAGS) -o tmp/cprefresh_ass.o src/cprefresh_default.s; \
+ 	elif [ $(REFRESH) = "ARM" ]; then \
+-	  $(CC) -c $(CFLAGSNO) -marm -o tmp/cprefresh_ass.o src/cprefresh_arm.s; \
++	  $(CC) -c $(CFLAGS) -marm -o tmp/cprefresh_ass.o src/cprefresh_arm.s; \
+ 	elif [ $(REFRESH) = "VFP" ]; then \
+-	  $(CC) -c $(CFLAGSNO) -marm -mfpu=neon-vfpv4 -o tmp/cprefresh_ass.o src/cprefresh_vfp.s; \
++	  $(CC) -c $(CFLAGS) -marm -mfpu=neon-vfpv4 -o tmp/cprefresh_ass.o src/cprefresh_vfp.s; \
+ 	fi
+ 
+ tmp/cprefresh.o: src/cprefresh.h src/cprefresh.c |tmp 
+-	$(CC) -c $(CFLAGSNO) -o tmp/cprefresh.o src/cprefresh.c
++	$(CC) -c $(CFLAGS) -o tmp/cprefresh.o src/cprefresh.c
+ 
+ bin/playhrt: src/version.h tmp/net.o src/playhrt.c tmp/cprefresh.o tmp/cprefresh_ass.o |bin
+-	$(CC) $(CFLAGSNO) -o bin/playhrt src/playhrt.c tmp/net.o tmp/cprefresh.o tmp/cprefresh_ass.o -lasound -lrt
++	$(CC) $(CFLAGS) -o bin/playhrt src/playhrt.c tmp/net.o tmp/cprefresh.o tmp/cprefresh_ass.o -lasound -lrt
+ 
+ bin/playhrt_ALSANC: src/version.h tmp/net.o src/playhrt.c tmp/cprefresh.o tmp/cprefresh_ass.o |bin
+-	$(CC) $(CFLAGSNO) -DALSANC -I$(ALSANC)/include -L$(ALSANC)/lib -o bin/playhrt_ALSANC src/playhrt.c tmp/net.o tmp/cprefresh.o tmp/cprefresh_ass.o -lasound -lrt 
++	$(CC) $(CFLAGS) -DALSANC -I$(ALSANC)/include -L$(ALSANC)/lib -o bin/playhrt_ALSANC src/playhrt.c tmp/net.o tmp/cprefresh.o tmp/cprefresh_ass.o -lasound -lrt
+ 
+ bin/playhrt_static: src/version.h tmp/net.o src/playhrt.c tmp/cprefresh.o tmp/cprefresh_ass.o |bin
+-	$(CC) $(CFLAGSNO) -DALSANC -I$(ALSANC)/include -L$(ALSANC)/lib -o bin/playhrt_static src/playhrt.c tmp/net.o tmp/cprefresh.o tmp/cprefresh_ass.o -lasound -lrt -lpthread -lm -ldl -static
++	$(CC) $(CFLAGS) -DALSANC -I$(ALSANC)/include -L$(ALSANC)/lib -o bin/playhrt_static src/playhrt.c tmp/net.o tmp/cprefresh.o tmp/cprefresh_ass.o -lasound -lrt -lpthread -lm -ldl -static
+ 
+ bin/bufhrt: src/version.h tmp/net.o src/bufhrt.c tmp/cprefresh.o tmp/cprefresh_ass.o |bin
+-	$(CC) $(CFLAGSNO) -D_FILE_OFFSET_BITS=64 -o bin/bufhrt tmp/net.o tmp/cprefresh.o tmp/cprefresh_ass.o src/bufhrt.c -lpthread -lrt
++	$(CC) $(CFLAGS) -D_FILE_OFFSET_BITS=64 -o bin/bufhrt tmp/net.o tmp/cprefresh.o tmp/cprefresh_ass.o src/bufhrt.c -lpthread -lrt
+ 
+ bin/highrestest: src/highrestest.c |bin
+-	$(CC) $(CFLAGSNO) -o bin/highrestest src/highrestest.c -lrt
++	$(CC) $(CFLAGS) -o bin/highrestest src/highrestest.c -lrt
+ 
+ bin/writeloop: src/version.h src/writeloop.c tmp/cprefresh.o tmp/cprefresh_ass.o |bin
+ 	$(CC) $(CFLAGS) -D_FILE_OFFSET_BITS=64 -o bin/writeloop tmp/cprefresh.o tmp/cprefresh_ass.o src/writeloop.c -lpthread -lrt
+@@ -100,6 +97,3 @@ binPi:
+ 	tar cvf frankl_stereo-$(VERSION)-bin-$(ARCH).tar * ; \
+ 	gzip -9 frankl*.tar ; \
+ 	mv frankl*gz ..
+-
+-	
+-
 diff --git a/src/playhrt.c b/src/playhrt.c
 index 7d18ba9..8983e42 100644
 --- a/src/playhrt.c
