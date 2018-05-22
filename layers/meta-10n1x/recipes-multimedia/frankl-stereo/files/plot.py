@@ -2,15 +2,18 @@
 
 from matplotlib import pyplot as plt
 from matplotlib import style
-
 from numpy import genfromtxt
+import sys
+import os.path
 
-data = genfromtxt('file.dat',delimiter=',')
+sys.argv.pop(0)
 
-plt.plot(data)
-
-plt.title('playhrt hwbufer space/time function')
-plt.ylabel('free space in buffer')
-plt.xlabel('time')
-
-plt.show()
+for arg in sys.argv:
+    if os.path.isfile(arg):
+        data = genfromtxt(arg,delimiter=',')
+        plt.plot(data)
+        plt.ylabel('value')
+        plt.xlabel('time')
+        plt.show()
+    else:
+        print('ERROR {0}} does not exist', arg)
