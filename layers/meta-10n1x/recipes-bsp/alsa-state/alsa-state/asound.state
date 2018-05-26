@@ -361,7 +361,7 @@ state.graph {
 	control.6 {
 		iface MIXER
 		name 'DSP Program'
-		value 'FIR interpolation with de-emphasis'
+		value 'Low latency IIR with de-emphasis'
 		comment {
 			access 'read write'
 			type ENUMERATED
@@ -376,7 +376,7 @@ state.graph {
 	control.7 {
 		iface MIXER
 		name 'Clock Missing Period'
-		value '2s'
+		value '4s'
 		comment {
 			access 'read write'
 			type ENUMERATED
@@ -394,7 +394,7 @@ state.graph {
 	control.8 {
 		iface MIXER
 		name 'Auto Mute Time Left'
-		value '21ms'
+		value '10.66s'
 		comment {
 			access 'read write'
 			type ENUMERATED
@@ -412,7 +412,7 @@ state.graph {
 	control.9 {
 		iface MIXER
 		name 'Auto Mute Time Right'
-		value '21ms'
+		value '10.66s'
 		comment {
 			access 'read write'
 			type ENUMERATED
