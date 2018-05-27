@@ -7,16 +7,6 @@ wakeup_nsec=125000
 
 tmpdir="/tmp/playhrt"
 
-cleanup() {
-    touch $tmpdir/do_exit
-    fuser -k -w $tmpdir/{unpack,repack,playhrt}_fifo
-    pkill pipe-size
-    pkill sox
-    pkill scw1play.sh
-}
-
-trap 'cleanup >/dev/null 2>&1' EXIT
-
 rm -rf $tmpdir && mkdir -p $tmpdir
 mkfifo $tmpdir/{unpack,repack,playhrt}_fifo
 
@@ -26,7 +16,18 @@ for path in "$@"; do
 done
 
 audio_files="${audio_files:1}"
+[ -z "$audio_files" ] && exit 1
 printf "Playing\n$audio_files\n"
+
+cleanup() {
+    touch $tmpdir/do_exit
+    fuser -k -w $tmpdir/{unpack,repack,playhrt}_fifo
+    pkill pipe-size
+    pkill sox
+    pkill scw1play.sh
+}
+
+trap 'cleanup >/dev/null 2>&1' EXIT
 
 IFS=$'\n'
 for file in $audio_files; do
