@@ -22,35 +22,32 @@ rm -rf $tmpdir && mkdir -p $tmpdir
 mkfifo $tmpdir/{unpack,repack,playhrt}_fifo
 
 for path in "$@"; do
+    [ ! -d "$path" -a ! -f "$path" ] && echo "WARNING: '$path' does not exist" && continue
+    audio_files=$(printf "${audio_files}\n$(find "$path" -type f | grep -ie "$audio_formats" | sort -V)")
+done
+
+audio_files="${audio_files:1}"
+printf "Playing\n$audio_files\n"
+
+IFS=$'\n'
+for file in $audio_files; do
     [ -f $tmpdir/do_exit ] && exit 0
 
-    [ ! -d "$path" ] && [ ! -f "$path" ] && \
-	echo "WARNING: '$path' does not exist" && \
-	continue
+    fsrate=$(sox --i -r "$file")
 
-    audio_files=$(find "$path" -type f | grep -ie "$audio_formats" | sort -V)
-    echo Playing $'\n'"$audio_files"
+    pipe-size $tmpdir/unpack_fifo $((2**29)) & # 2^29 ~ 536 mb
 
-    IFS=$'\n'
-    for file in $audio_files; do
-	[ -f $tmpdir/do_exit ] && exit 0
+    taskset -c 1,2 chrt -f 60 sox "$file" -t raw -e float -b 64 $tmpdir/unpack_fifo &
 
-	fsrate=$(sox --i -r "$file")
+    pipe-size $tmpdir/repack_fifo $((2**23)) & # 2^23 ~ 8 mb
 
-	pipe-size $tmpdir/unpack_fifo $((2**29)) & # 2^29 ~ 536 mb
+    taskset -c 1,2 chrt -f 70 resample_soxr -i $fsrate -o 192000 \
+	    <$tmpdir/unpack_fifo >$tmpdir/repack_fifo &
 
-	taskset -c 1,2 chrt -f 60 sox "$file" -t raw -e float -b 64 $tmpdir/unpack_fifo &
+    taskset -c 1,2 chrt -f 80 sox -t raw -e float -b 64 -c 2 -r 192000 \
+	    $tmpdir/repack_fifo -e signed -b 32 -t raw $tmpdir/playhrt_fifo &
 
-	pipe-size $tmpdir/repack_fifo $((2**23)) & # 2^23 ~ 8 mb
-
-	taskset -c 1,2 chrt -f 70 resample_soxr -i $fsrate -o 192000 \
-		<$tmpdir/unpack_fifo >$tmpdir/repack_fifo &
-
-	taskset -c 1,2 chrt -f 80 sox -t raw -e float -b 64 -c 2 -r 192000 \
-		$tmpdir/repack_fifo -e signed -b 32 -t raw $tmpdir/playhrt_fifo &
-
-	wait
-    done
+    wait
 done &
 
 pipe-size $tmpdir/playhrt_fifo $((2**24)) # 2^24 ~ 16 mb
