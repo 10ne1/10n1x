@@ -2,7 +2,6 @@
 
 audio_formats="flac\|mp3\|wv\|ogg" #etc
 
-alsadevice=hw:0,0
 hw_buffer=8192 # 16384 #65536
 wakeup_nsec=125000
 
@@ -53,7 +52,7 @@ done &
 pipe-size $tmpdir/playhrt_fifo $((2**24)) # 2^24 ~ 16 mb
 
 taskset -c 3 chrt -f 99 playhrt < $tmpdir/playhrt_fifo \
-     -d $alsadevice \
+     -d hw:0,0 \
      -n $wakeup_nsec \
      -c $hw_buffer \
      -D 2000000
