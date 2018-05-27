@@ -3,7 +3,7 @@
 audio_formats="flac\|mp3\|wv\|ogg" #etc
 
 alsadevice=hw:0,0
-hw_buffer=16384 #65536
+hw_buffer=8192 # 16384 #65536
 wakeup_nsec=125000
 
 tmpdir="/tmp/playhrt"
