@@ -1,4 +1,4 @@
-From 0cb3f8a4ac9fd83657fa0075cdf7c6c3de4ac285 Mon Sep 17 00:00:00 2001
+From 5d440883bc23609d03d1932c0c57ba50db49143f Mon Sep 17 00:00:00 2001
 From: Ioan-Adrian Ratiu <adi@adirat.com>
 Date: Thu, 10 May 2018 15:41:39 +0300
 Subject: [PATCH] playhrt: simplify mmap writeloop
@@ -7,9 +7,9 @@ Signed-off-by: Ioan-Adrian Ratiu <adi@adirat.com>
 
 ---
  Makefile      |   28 +-
- src/playhrt.c | 1074 ++++++++++---------------------------------------
+ src/playhrt.c | 1081 ++++++++++---------------------------------------
  src/version.h |    1 +
- 3 files changed, 224 insertions(+), 879 deletions(-)
+ 3 files changed, 231 insertions(+), 879 deletions(-)
  create mode 100644 src/version.h
 
 diff --git a/Makefile b/Makefile
@@ -80,7 +80,7 @@ index 5ce374a..29f4bae 100644
 -	
 -
 diff --git a/src/playhrt.c b/src/playhrt.c
-index 7d18ba9..60c575a 100644
+index 7d18ba9..604b374 100644
 --- a/src/playhrt.c
 +++ b/src/playhrt.c
 @@ -1,16 +1,4 @@
@@ -100,7 +100,7 @@ index 7d18ba9..60c575a 100644
  #include <getopt.h>
  #include <stdio.h>
  #include <stdlib.h>
-@@ -20,858 +8,220 @@ http://www.gnu.org/licenses/gpl.txt for license details.
+@@ -20,858 +8,227 @@ http://www.gnu.org/licenses/gpl.txt for license details.
  #include <alsa/asoundlib.h>
  #include "cprefresh.h"
  
@@ -345,7 +345,11 @@ index 7d18ba9..60c575a 100644
 -"\n"
 -);
 -}
-+#define USEC_PER_SEC 1000000
++#define USEC_PER_SEC	1000000
++#define NSEC_PER_SEC	1000000000
++#define BYTESPERFRAME	8 /* 2 channels * 4 bytes per sample */
++#define NRCHANNELS	2
++#define	RATE		192000
  
 +static inline int64_t calcdiff(struct timespec t1, struct timespec t2)
 +{
@@ -964,20 +968,18 @@ index 7d18ba9..60c575a 100644
 -                    count, nrdelays, icount, ocount, badloops, badframes, badreads, readmissing);
 -    }
 -    return 0;
-+	int s,verbose, nrchannels;
-+	long ilen, loopspersec, sleep, nsec;
++	int verbose, i;
++	long ilen, sleep, wakeup_nsec;
 +	void *iptr;
 +	struct timespec mtime, nowtime;
 +	snd_pcm_t *pcm_handle;
 +	snd_pcm_hw_params_t *hwparams;
 +	snd_pcm_sw_params_t *swparams;
-+	snd_pcm_format_t format;
 +	char *pcm_name, started = 0;
-+	int optc, rate, bytespersample, bytesperframe;
-+	snd_pcm_uframes_t hwbufsize, periodsize, offset, frames, olen;
++	snd_pcm_uframes_t hwbufsize, periodsize, offset, frames, out_frames;
 +	snd_pcm_sframes_t avail;
 +	const snd_pcm_channel_area_t *areas;
-+	FILE *buffill, *wakeupdelay;
++	FILE *buffill, *wakeupdelay, *bufframes;
 +
 +	/* read command line options */
 +	static struct option longoptions[] = {{"wakeup-nec", required_argument, 0,  'n' },
@@ -987,24 +989,23 @@ index 7d18ba9..60c575a 100644
 +					      {"verbose", no_argument, 0, 'v' },
 +					      {0,         0,           0,  0 }};
 +
-+	rate = 192000;
-+	format = SND_PCM_FORMAT_S32_LE;
-+	bytespersample = 4;
 +	hwbufsize = 16384;
-+	nsec = 125000;
++	wakeup_nsec = 125000;
 +	periodsize = 0;
 +	pcm_name = NULL;
-+	nrchannels = 2;
 +	sleep = 0;
 +	verbose = 0;
-+	while ((optc = getopt_long(argc, argv, "r:p:Sb:D:i:n:s:f:k:Mc:P:d:e:o:NvVh",
-+				   longoptions, &optind)) != -1) {
-+		switch (optc) {
++
++	while ((i = getopt_long(argc, argv, "r:p:Sb:D:i:n:s:f:k:Mc:P:d:e:o:NvVh", longoptions, &optind)) != -1)
++		switch (i) {
 +		case 'n':
-+			nsec = atoi(optarg);
++			wakeup_nsec = atoi(optarg);
 +			break;
 +		case 'c':
 +			hwbufsize = atoi(optarg);
++			break;
++		case 'P':
++			periodsize = atoi(optarg);
 +			break;
 +		case 'd':
 +			pcm_name = optarg;
@@ -1016,16 +1017,14 @@ index 7d18ba9..60c575a 100644
 +			verbose += 1;
 +			break;
 +		default:
-+			fprintf(stderr, "ERROR: Unknown arg '%c'\n", optc);
++			fprintf(stderr, "ERROR: Unknown arg '%c'\n", i);
 +			exit(2);
 +		}
-+	}
 +
-+	bytesperframe = bytespersample*nrchannels;
-+	loopspersec = 1000000000/nsec;
-+	olen = rate/loopspersec; // frames written per loop
-+	ilen = bytesperframe * olen;
-+	hwbufsize = hwbufsize - (hwbufsize % olen);
++	if (!pcm_name) {
++		fprintf(stderr, "ERROR: Must supply a pcm device using '-d' option\n");
++		exit(2);
++	}
 +
 +	/* setup sound device */
 +	snd_pcm_hw_params_malloc(&hwparams);
@@ -1045,16 +1044,16 @@ index 7d18ba9..60c575a 100644
 +		fprintf(stderr, "playhrt: Error setting access.\n");
 +		exit(8);
 +	}
-+	if (snd_pcm_hw_params_set_format(pcm_handle, hwparams, format) < 0) {
++	if (snd_pcm_hw_params_set_format(pcm_handle, hwparams, SND_PCM_FORMAT_S32_LE) < 0) {
 +		fprintf(stderr, "playhrt: Error setting format.\n");
 +		exit(9);
 +	}
-+	if (snd_pcm_hw_params_set_rate(pcm_handle, hwparams, rate, 0) < 0) {
++	if (snd_pcm_hw_params_set_rate(pcm_handle, hwparams, RATE, 0) < 0) {
 +		fprintf(stderr, "playhrt: Error setting rate.\n");
 +		exit(10);
 +	}
-+	if (snd_pcm_hw_params_set_channels(pcm_handle, hwparams, nrchannels) < 0) {
-+		fprintf(stderr, "playhrt: Error setting channels to %d.\n", nrchannels);
++	if (snd_pcm_hw_params_set_channels(pcm_handle, hwparams, NRCHANNELS) < 0) {
++		fprintf(stderr, "playhrt: Error setting channels to %d.\n", NRCHANNELS);
 +		exit(11);
 +	}
 +	if (periodsize != 0) {
@@ -1109,20 +1108,26 @@ index 7d18ba9..60c575a 100644
 +		exit(19);
 +	}
 +
++	out_frames = RATE/(NSEC_PER_SEC/wakeup_nsec); // frames written per loop
++
 +	if (verbose) {
-+		fprintf(stderr, "Step size: %ld nsec, Chunk size: %ld bytes, Hwbuf size: %ld bytes.\n", nsec, ilen, hwbufsize);
++		fprintf(stderr, "Step size: %ld nsec, Chunk size: %ld frames (%ld bytes), Hwbuf size: %ld frames.\n", wakeup_nsec, out_frames, out_frames * BYTESPERFRAME, hwbufsize);
 +		buffill = fopen("buffill.dat", "w");
 +		wakeupdelay =  fopen("wakeupdelay.dat", "w");
++		bufframes =  fopen("bufframes.dat", "w");
 +	}
 +
 +	do {
-+		frames = olen;
-+
 +		avail = snd_pcm_avail_update(pcm_handle);
++		if (avail < periodsize)
++			continue;
++
 +		if (avail < 0) {
 +			fprintf(stderr, "ERROR: %s (%ld)\n", strerror(avail), avail);
 +			break;
 +		}
++
++		frames = out_frames;
 +
 +		if (!started && avail <= hwbufsize/2) {
 +			snd_pcm_start(pcm_handle);
@@ -1131,33 +1136,34 @@ index 7d18ba9..60c575a 100644
 +
 +		snd_pcm_mmap_begin(pcm_handle, &areas, &offset, &frames);
 +
-+		ilen = frames * bytesperframe;
-+		iptr = areas[0].addr + offset * bytesperframe;
++		ilen = frames * BYTESPERFRAME;
++		iptr = areas[0].addr + offset * BYTESPERFRAME;
 +
 +		memclean(iptr, ilen);
-+		s = read(0, iptr, ilen);
++		i = read(0, iptr, ilen);
 +
 +		/* compute time for next wakeup */
-+		mtime.tv_nsec += nsec;
++		mtime.tv_nsec += wakeup_nsec;
 +		if (mtime.tv_nsec > 999999999) {
 +			mtime.tv_nsec -= 1000000000;
 +			mtime.tv_sec++;
 +		}
 +
-+		refreshmem(iptr, s);
++		refreshmem(iptr, i);
 +
 +		clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &mtime, NULL);
 +		if (verbose)
 +			clock_gettime(CLOCK_MONOTONIC, &nowtime);
 +
-+		refreshmem(iptr, s);
++		refreshmem(iptr, i);
 +		snd_pcm_mmap_commit(pcm_handle, offset, frames);
 +
 +		if (verbose) {
++			fprintf(bufframes, "%ld\n", frames);
 +			fprintf(buffill, "%ld\n", avail);
 +			fprintf(wakeupdelay, "%lld\n", calcdiff(nowtime,mtime));
 +		}
-+	} while (s>0);
++	} while (i>0);
 +
 +	snd_pcm_drain(pcm_handle);
 +	snd_pcm_close(pcm_handle);
@@ -1165,6 +1171,7 @@ index 7d18ba9..60c575a 100644
 +	if (verbose) {
 +		fclose(buffill);
 +		fclose(wakeupdelay);
++		fclose(bufframes);
 +	}
 +
 +	return 0;

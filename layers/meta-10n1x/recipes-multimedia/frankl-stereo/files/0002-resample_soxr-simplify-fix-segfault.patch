@@ -1,4 +1,4 @@
-From a329231d9e23ef4dcde1f3c60744e73ec2e2acb2 Mon Sep 17 00:00:00 2001
+From 882458606d58c60552ba41139762562be3e804c1 Mon Sep 17 00:00:00 2001
 From: Ioan-Adrian Ratiu <adi@adirat.com>
 Date: Mon, 28 May 2018 15:48:35 +0300
 Subject: [PATCH] resample_soxr: simplify & fix segfault
