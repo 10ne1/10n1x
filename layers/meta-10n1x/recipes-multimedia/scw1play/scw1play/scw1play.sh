@@ -3,7 +3,7 @@
 audio_formats="flac\|mp3\|wv\|ogg" #etc
 
 hw_buffer=8192 # 16384 #65536
-wakeup_nsec=125000
+wakeup_nsec=166666
 
 for path in "$@"; do
     [ ! -d "$path" -a ! -f "$path" ] && echo "WARNING: '$path' does not exist" && continue
@@ -34,10 +34,9 @@ for file in $audio_files; do
 
     fsrate=$(sox --i -r "$file")
 
-    pipe-size $tmpdir/unpack_fifo $((2**29)) & # 2^29 ~ 536 mb
+    pipe-size $tmpdir/unpack_fifo $((2**24)) & # 2^25 ~ 33 mb
     taskset -c 1,2 chrt -f 60 sox "$file" -t raw -e float -b 64 $tmpdir/unpack_fifo &
-
-    taskset -c 1,2 chrt -f 70 resample_soxr -i $fsrate -o 192000 \
+    taskset -c 1,2 chrt -f 70 resample_soxr -i $fsrate -b 65536 \
 	    <$tmpdir/unpack_fifo >$tmpdir/repack_fifo
 done &
 
@@ -51,4 +50,5 @@ taskset -c 3 chrt -f 99 playhrt < $tmpdir/playhrt_fifo \
      -d hw:0,0 \
      -n $wakeup_nsec \
      -c $hw_buffer \
-     -D 2000000
+     -P 64 \
+     -D 4000000
