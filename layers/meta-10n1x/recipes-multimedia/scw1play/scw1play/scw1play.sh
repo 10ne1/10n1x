@@ -5,11 +5,6 @@ audio_formats="flac\|mp3\|wv\|ogg" #etc
 hw_buffer=8192 # 16384 #65536
 wakeup_nsec=125000
 
-tmpdir="/tmp/playhrt"
-
-rm -rf $tmpdir && mkdir -p $tmpdir
-mkfifo $tmpdir/{unpack,repack,playhrt}_fifo
-
 for path in "$@"; do
     [ ! -d "$path" -a ! -f "$path" ] && echo "WARNING: '$path' does not exist" && continue
     audio_files=$(printf "${audio_files}\n$(find "$path" -type f | grep -ie "$audio_formats" | sort -V)")
@@ -18,6 +13,10 @@ done
 audio_files="${audio_files:1}"
 [ -z "$audio_files" ] && exit 1
 printf "Playing\n$audio_files\n"
+
+tmpdir="/tmp/playhrt"
+rm -rf $tmpdir && mkdir -p $tmpdir
+mkfifo $tmpdir/{unpack,repack,playhrt}_fifo
 
 cleanup() {
     touch $tmpdir/do_exit
