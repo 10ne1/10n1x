@@ -8,6 +8,7 @@ SRCREV = "cf3c157070a45e739834fe87019f0e7a5c237296"
 
 SRC_URI = "git://bitbucket.org/frank_l/frankl_stereo.git;protocol=https \
            file://0001-playhrt-simplify-mmap-writeloop.patch \
+           file://0002-resample_soxr-simplify-fix-segfault.patch \
            "
 
 S = "${WORKDIR}/git"
