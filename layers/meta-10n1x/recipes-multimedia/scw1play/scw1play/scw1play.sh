@@ -35,18 +35,14 @@ for file in $audio_files; do
     fsrate=$(sox --i -r "$file")
 
     pipe-size $tmpdir/unpack_fifo $((2**29)) & # 2^29 ~ 536 mb
-
     taskset -c 1,2 chrt -f 60 sox "$file" -t raw -e float -b 64 $tmpdir/unpack_fifo &
 
-    pipe-size $tmpdir/repack_fifo $((2**23)) & # 2^23 ~ 8 mb
-
     taskset -c 1,2 chrt -f 70 resample_soxr -i $fsrate -o 192000 \
-	    <$tmpdir/unpack_fifo >$tmpdir/repack_fifo &
-
-    wait
+	    <$tmpdir/unpack_fifo >$tmpdir/repack_fifo
 done &
 
-pipe-size $tmpdir/playhrt_fifo $((2**24)) & # 2^24 ~ 16 mb
+pipe-size $tmpdir/repack_fifo $((2**24)) & # 2^24 ~ 16 mb
+pipe-size $tmpdir/playhrt_fifo $((2**23)) & # 2^23 ~ 8 mb
 
 taskset -c 1,2 chrt -f 80 sox -t raw -e float -b 64 -c 2 -r 192000 \
 	$tmpdir/repack_fifo -e signed -b 32 -t raw $tmpdir/playhrt_fifo &
