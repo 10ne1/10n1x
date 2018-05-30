@@ -10,7 +10,7 @@ LINUX_VERSION = "4.16"
 SRCREV = "${AUTOREV}"
 
 SRC_URI = "\
-	git:///home/adi/workspace/linux;branch=linux-4.16.y-rt-rebase-rpi \
+	git:///home/adi/workspace/linux;branch=linux-4.16.y-rt-rpi \
 	file://defconfig \
 "
 
