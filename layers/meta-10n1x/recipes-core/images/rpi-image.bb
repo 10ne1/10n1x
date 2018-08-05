@@ -26,8 +26,8 @@ IMAGE_INSTALL += " \
 	openssh-scp \
 	opkg \
 	procps \
-	scw1play \
 	sed \
+	shplay \
 	sinit \
 	sshfs-fuse \
 	strace \
