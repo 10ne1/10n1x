@@ -42,7 +42,7 @@ IMAGE_INSTALL += " \
 	vim-tiny \
 	wget \
 	which \
-	wireless-tools \
+	iw \
 	wpa-supplicant \
 "
 

@@ -41,7 +41,7 @@ alsactl -f /var/lib/alsa/asound.state restore
 
 logger -t "rc.init" "Configuring network..."
 echo "Configuring network..."
-/sbin/iwconfig wlan0 power off
+iw dev wlan0 set power_save off
 [ -f /var/log/wpa_supplicant.log ] && mv /var/log/wpa_supplicant.log /var/log/wpa_supplicant.log.lastboot
 wpa_supplicant -d -B -i wlan0 -c /etc/wpa_supplicant/wpa_supplicant-wlan0.conf > /var/log/wpa_supplicant.log 2>&1 &
 dhcpcd >/dev/null 2>&1 &
