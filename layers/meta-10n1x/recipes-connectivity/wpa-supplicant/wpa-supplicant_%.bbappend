@@ -6,6 +6,9 @@ SRC_URI += "\
 	file://NI.gpg \
 "
 
+PACKAGECONFIG_remove += "gnutls"
+PACKAGECONFIG += "openssl"
+
 DEPENDS += "gnupg-native"
 
 do_install_append () {

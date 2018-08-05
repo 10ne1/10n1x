@@ -14,7 +14,7 @@ IMAGE_INSTALL += " \
 	grep \
 	gzip \
 	iproute2 \
-	iputils-ping \
+	inetutils-ping \
 	less \
 	libcap-bin \
 	net-tools \
@@ -40,7 +40,6 @@ IMAGE_INSTALL += " \
 	update-alternatives-opkg \
 	user-conf \
 	vim-tiny \
-	wget \
 	which \
 	iw \
 	wpa-supplicant \
