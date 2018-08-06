@@ -6,6 +6,7 @@ IMAGE_INSTALL += " \
 	base-files \
 	base-passwd \
 	coreutils \
+	curl \
 	dhcpcd \
 	file \
 	findutils \
