@@ -8,6 +8,7 @@ IMAGE_INSTALL += " \
 	coreutils \
 	curl \
 	dhcpcd \
+	e2fsprogs-resize2fs \
 	file \
 	findutils \
 	gawk \
