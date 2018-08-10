@@ -1,0 +1,91 @@
+From 98f2e4f0dbf39e4dabbd3fc31fdc302b222fa30a Mon Sep 17 00:00:00 2001
+From: Ioan-Adrian Ratiu <adi@adirat.com>
+Date: Sat, 31 Mar 2018 02:51:48 +0300
+Subject: [PATCH] musl: sched: bring back linux sched_* functions & syscalls
+
+musl upstream made them NOOP stubs in commit 1e21e78bf7a5 ("add
+support for thread scheduling (POSIX TPS option)") because Linux's
+sched_* syscalls are not implemented in a POSIX compliant way.
+
+This chart [1] illustrates the current musl sched_* state in column
+"POSIX process scheduling": musl provides stubs while other libc's
+like GNU "incorrectly"" expose the sched_* kernel syscalls via
+homonymous functions operating on threads instead of processes as
+required by POSIX.
+
+Even though Linux wrongly implements the POSIX standard and musl is
+correct that perhaps the kernel & glibc should have chosen other
+syscall/function names for their thread API's to not conflict with the
+POSIX process API, the problem still remains that that a lot of
+important software depends on these non-POSIX functions / syscalls
+(eg. chrt from util-linux throws a "not implemented" error on musl
+systems) and it's better to provide them than break userspace.
+
+[1] http://www.etalabs.net/compare_libcs.html
+
+Upstream-Status: Inappropriate [embedded specific]
+
+Signed-off-by: Ioan-Adrian Ratiu <adi@adirat.com>
+---
+ src/sched/sched_getparam.c     | 3 +--
+ src/sched/sched_getscheduler.c | 3 +--
+ src/sched/sched_setparam.c     | 3 +--
+ src/sched/sched_setscheduler.c | 3 +--
+ 4 files changed, 4 insertions(+), 8 deletions(-)
+
+diff --git a/src/sched/sched_getparam.c b/src/sched/sched_getparam.c
+index 76f10e49..690f4406 100644
+--- a/src/sched/sched_getparam.c
++++ b/src/sched/sched_getparam.c
+@@ -1,8 +1,7 @@
+ #include <sched.h>
+-#include <errno.h>
+ #include "syscall.h"
+ 
+ int sched_getparam(pid_t pid, struct sched_param *param)
+ {
+-	return __syscall_ret(-ENOSYS);
++	syscall(SYS_sched_getparam, pid, param);
+ }
+diff --git a/src/sched/sched_getscheduler.c b/src/sched/sched_getscheduler.c
+index 394e508b..e9f85e53 100644
+--- a/src/sched/sched_getscheduler.c
++++ b/src/sched/sched_getscheduler.c
+@@ -1,8 +1,7 @@
+ #include <sched.h>
+-#include <errno.h>
+ #include "syscall.h"
+ 
+ int sched_getscheduler(pid_t pid)
+ {
+-	return __syscall_ret(-ENOSYS);
++	syscall(SYS_sched_getscheduler, pid);
+ }
+diff --git a/src/sched/sched_setparam.c b/src/sched/sched_setparam.c
+index 18623ee4..f699faf8 100644
+--- a/src/sched/sched_setparam.c
++++ b/src/sched/sched_setparam.c
+@@ -1,8 +1,7 @@
+ #include <sched.h>
+-#include <errno.h>
+ #include "syscall.h"
+ 
+ int sched_setparam(pid_t pid, const struct sched_param *param)
+ {
+-	return __syscall_ret(-ENOSYS);
++	return syscall(SYS_sched_setparam, pid, param);
+ }
+diff --git a/src/sched/sched_setscheduler.c b/src/sched/sched_setscheduler.c
+index 4435f216..e678221e 100644
+--- a/src/sched/sched_setscheduler.c
++++ b/src/sched/sched_setscheduler.c
+@@ -1,8 +1,7 @@
+ #include <sched.h>
+-#include <errno.h>
+ #include "syscall.h"
+ 
+ int sched_setscheduler(pid_t pid, int sched, const struct sched_param *param)
+ {
+-	return __syscall_ret(-ENOSYS);
++	return syscall(SYS_sched_setscheduler, pid, sched, param);
+ }
