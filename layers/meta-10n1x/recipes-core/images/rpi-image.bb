@@ -1,5 +1,7 @@
 LICENSE="MIT"
 
+inherit image
+
 IMAGE_INSTALL += " \
 	alsa-utils \
 	bash-completion \
@@ -48,10 +50,6 @@ IMAGE_INSTALL += " \
 "
 
 IMAGE_FEATURES += "package-management"
-
-IMAGE_OVERHEAD_FACTOR = "5"
-
-inherit image
 
 set_user_pass() {
 	NEWLINE=$(cat ${IMAGE_ROOTFS}/etc/shadow | awk -F: -v pass='$6$CGK6SHL6.PJyFk8O$jyOO8BxvxSUfQE6a50SQOmUn3ouAW.z03fWFg69il3bTp7BMFcmc.hZ23z3hPlxlJ2wfJzduFHVGR65NZDBbQ.' '$1 ~ /${USER}/ {$2 = pass; print $0}' OFS=:)
