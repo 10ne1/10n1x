@@ -1,0 +1,40 @@
+#!/bin/sh
+
+if [ "$#" -ge 1 ]; then
+    DEVNAMES="$@"
+else
+    DEVNAMES="$(ls /sys/block)"
+fi
+
+for dev in $DEVNAMES; do
+    if [ ! -b "/dev/$dev" ]; then
+	echo "$0: $dev does not exist, skipping"
+	continue
+    fi
+
+    case "$dev" in
+	*sr0*) echo "$0: resizing sr0 is not supported, skipping"; continue ;;
+    esac
+
+    total_sectors=$(cat /sys/block/$dev/size)
+
+    last_part_name=$(ls -1 /sys/block/$dev/ | grep $dev | sort | tail -1)
+    last_part_number=$(echo $last_part_name | grep -o '.$')
+
+    last_part_start_sector=$(cat /sys/block/$dev/$last_part_name/start)
+    last_part_end_sector=$(( $last_part_start_sector + $(cat /sys/block/$dev/$last_part_name/size) ))
+
+    if [ $total_sectors -eq $last_part_end_sector ]; then
+	echo "$0: Not resizing /dev/$last_part_name, already at full capacity"
+	exit 0
+    fi
+
+    echo "$0: Resizing /dev/$last_part_name to fill unused space after it"
+
+    printf "d\n\nw" | fdisk "/dev/$dev"
+    printf "n\n\n${last_part_number}\n${last_part_start_sector}\n\nw" | fdisk "/dev/$dev"
+
+    partprobe
+
+    resize2fs "/dev/$last_part_name"
+done

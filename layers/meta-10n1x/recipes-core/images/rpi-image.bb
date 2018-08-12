@@ -29,6 +29,7 @@ IMAGE_INSTALL += " \
 	openssh-sshd \
 	openssh-scp \
 	opkg \
+	parted \
 	procps \
 	sed \
 	shplay \

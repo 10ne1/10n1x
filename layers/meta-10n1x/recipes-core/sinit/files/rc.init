@@ -1,5 +1,8 @@
 #!/bin/sh
 
+echo "Expanding partitions... "
+expand-last-part
+
 echo "Mounting root read write... "
 mount -o remount,rw /
 

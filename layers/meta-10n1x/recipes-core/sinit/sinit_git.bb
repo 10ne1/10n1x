@@ -14,6 +14,7 @@ SRC_URI = "\
 	file://poweroff \
 	file://reboot \
 	file://syscall-reboot.c \
+	file://expand-last-part \
 "
 
 S = "${WORKDIR}/git"
@@ -31,6 +32,7 @@ do_install() {
 	install -m 755 ${WORKDIR}/reboot		${D}${bindir}
 	install -m 755 ${WORKDIR}/poweroff		${D}${bindir}
 	install -m 755 ${WORKDIR}/syscall-reboot	${D}${bindir}
+	install -m 755 ${WORKDIR}/expand-last-part	${D}${bindir}
 
 	cd ${D}/${bindir}
 	ln -s sinit init
