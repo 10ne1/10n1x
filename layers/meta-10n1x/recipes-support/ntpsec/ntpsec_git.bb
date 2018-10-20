@@ -14,7 +14,7 @@ SRC_URI = "\
 
 S = "${WORKDIR}/git"
 
-DEPENDS += "asciidoc-native libxslt-native openssl python3"
+DEPENDS += "asciidoc-native libxslt-native openssl python3 bison-native"
 
 EXTRA_OECONF_append += "\
 	CC=${BUILD_CC} \
