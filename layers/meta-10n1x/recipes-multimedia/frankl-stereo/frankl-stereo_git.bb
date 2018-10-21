@@ -4,7 +4,7 @@ SECTION = "devel/libs"
 LICENSE = "GPLv3+"
 LIC_FILES_CHKSUM = "file://COPYING;md5=d32239bcb673463ab874e80d47fae504"
 
-SRCREV = "1ac0dbc3eac823aa596e461c96a24d8aee0f57cd"
+SRCREV = "${AUTOREV}"
 
 SRC_URI = "git://github.com/10ne1/frankl_stereo;branch=dev/aratiu/simplify-play-loop"
 
