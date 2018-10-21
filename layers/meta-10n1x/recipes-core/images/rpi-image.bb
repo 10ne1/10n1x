@@ -7,6 +7,7 @@ IMAGE_INSTALL += " \
 	bash-completion \
 	base-files \
 	base-passwd \
+	binutils \
 	coreutils \
 	curl \
 	dhcpcd \
@@ -14,6 +15,8 @@ IMAGE_INSTALL += " \
 	file \
 	findutils \
 	gawk \
+	gcc \
+	gcc-symlinks \
 	git \
 	grep \
 	gzip \
@@ -21,6 +24,7 @@ IMAGE_INSTALL += " \
 	inetutils-ping \
 	less \
 	libcap-bin \
+	make \
 	net-tools \
 	netbase \
 	nethogs \
