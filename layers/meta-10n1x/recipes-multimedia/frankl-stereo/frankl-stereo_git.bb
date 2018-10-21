@@ -4,12 +4,9 @@ SECTION = "devel/libs"
 LICENSE = "GPLv3+"
 LIC_FILES_CHKSUM = "file://COPYING;md5=d32239bcb673463ab874e80d47fae504"
 
-SRCREV = "cf3c157070a45e739834fe87019f0e7a5c237296"
+SRCREV = "1ac0dbc3eac823aa596e461c96a24d8aee0f57cd"
 
-SRC_URI = "git://bitbucket.org/frank_l/frankl_stereo.git;protocol=https \
-           file://0001-playhrt-simplify-mmap-writeloop.patch \
-           file://0002-resample_soxr-simplify-fix-segfault.patch \
-           "
+SRC_URI = "git://github.com/10ne1/frankl_stereo;branch=dev/aratiu/simplify-play-loop"
 
 S = "${WORKDIR}/git"
 
