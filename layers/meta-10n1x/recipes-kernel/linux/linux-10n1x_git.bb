@@ -1,16 +1,16 @@
 DESCRIPTION = "Linux kernel for 10n1x"
 SECTION = "kernel"
 LICENSE = "GPLv2"
-LIC_FILES_CHKSUM = "file://COPYING;md5=d7810fab7487fb0aad327b76f1be7cd7"
+LIC_FILES_CHKSUM = "file://COPYING;md5=bbea815ee2795b2f4230826c0c6b8814"
 
 FILESEXTRAPATHS_prepend := "${THISDIR}/files:"
 
-LINUX_VERSION = "4.16"
+LINUX_VERSION = "4.18"
 
 SRCREV = "${AUTOREV}"
 
 SRC_URI = "\
-	git://github.com/10ne1/linux;branch=linux-4.16.y-rt-rpi \
+	git://github.com/10ne1/linux;branch=linux-${LINUX_VERSION}.y-rt-rpi \
 	file://defconfig \
 "
 
