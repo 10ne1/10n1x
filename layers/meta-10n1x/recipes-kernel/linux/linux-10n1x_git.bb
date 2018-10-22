@@ -9,6 +9,8 @@ LINUX_VERSION = "4.18"
 
 SRCREV = "${AUTOREV}"
 
+PV = "${LINUX_VERSION}+git${SRCPV}"
+
 SRC_URI = "\
 	git://github.com/10ne1/linux;branch=linux-${LINUX_VERSION}.y-rt-rpi \
 	file://defconfig \
