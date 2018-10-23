@@ -2,9 +2,6 @@
 
 audio_formats="flac\|mp3\|wv\|ogg"
 
-hw_buffer=17920
-wakeup_nsec=166666
-
 for path in "$@"; do
     [ ! -d "$path" -a ! -f "$path" ] && echo "WARNING: '$path' does not exist" && continue
     audio_files=$(printf "${audio_files}\n$(find "$path" -type f | grep -ie "$audio_formats" | sort -V)")
@@ -23,7 +20,7 @@ cleanup() {
     fuser -k -w $tmpdir/{unpack,repack,playhrt}_fifo
     pkill pipe-size
     pkill sox
-    pkill scw1play.sh
+    pkill shplay
 }
 
 trap 'cleanup >/dev/null 2>&1' EXIT
@@ -36,7 +33,7 @@ for file in $audio_files; do
 
     pipe-size $tmpdir/unpack_fifo $((2**29)) & # 2^25 ~ 33 mb
     taskset -c 1,2 chrt -f 60 sox "$file" -t raw -e float -b 64 $tmpdir/unpack_fifo &
-    taskset -c 1,2 chrt -f 70 resample_soxr -i $fsrate -b 65536 \
+    taskset -c 1,2 chrt -f 70 resample_soxr -i $fsrate -b 131072 \
 	    <$tmpdir/unpack_fifo >$tmpdir/repack_fifo
 done &
 
@@ -48,7 +45,5 @@ taskset -c 1,2 chrt -f 80 sox -t raw -e float -b 64 -c 2 -r 192000 \
 
 taskset -c 3 chrt -f 99 playhrt < $tmpdir/playhrt_fifo \
      -d hw:0,0 \
-     -n $wakeup_nsec \
-     -c $hw_buffer \
-     -P 64 \
-     -D 20000000
+     -c 96 \
+     -D 1500000
