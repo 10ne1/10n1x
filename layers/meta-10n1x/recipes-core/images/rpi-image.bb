@@ -4,6 +4,7 @@ inherit image
 
 IMAGE_INSTALL += " \
 	alsa-utils \
+	alsacap \
 	bash-completion \
 	base-files \
 	base-passwd \
