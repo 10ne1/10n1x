@@ -131,11 +131,11 @@ int main(int argc, char *argv[])
 		iptr = areas[0].addr + offset * BYTESPERFRAME;
 
 		memclean(iptr, ilen);
+
 		i = read(0, iptr, ilen);
-		if (i <= 0) {
-			fprintf(stderr, "ERROR: %s (%ld)\n", strerror(errno), errno);
+
+		if (i <= 0) /* finished playing */
 			break;
-		}
 
 		/* compute time for next wakeup */
 		mtime.tv_nsec += WAKEUP_NSEC;
@@ -151,6 +151,7 @@ int main(int argc, char *argv[])
 		snd_pcm_mmap_commit(pcm_handle, offset, frames);
 	}
 
+	snd_pcm_nonblock(pcm_handle, 0);
 	snd_pcm_drain(pcm_handle);
 	snd_pcm_close(pcm_handle);
 
