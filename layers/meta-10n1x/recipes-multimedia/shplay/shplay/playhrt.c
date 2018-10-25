@@ -9,13 +9,10 @@
 
 #define BYTESPERFRAME	8 /* 2 channels, 4 bytes per sample */
 #define NRCHANNELS	2
-#define	RATE		192000
-#define PERIODSIZE	32
-#define WAKEUP_NSEC	166667
 
 int main(int argc, char *argv[])
 {
-	int i;
+	int i, samplerate, period;
 	long ilen, sleep, wakeup_nsec;
 	void *iptr;
 	struct timespec mtime, nowtime;
@@ -27,11 +24,17 @@ int main(int argc, char *argv[])
 	const snd_pcm_channel_area_t *areas;
 
 	hwbufsize = 320;
+	samplerate = 192000;
+	period = 32;
 	pcm_name = NULL;
 	sleep = 0;
+	wakeup_nsec = 0;
 
-	while ((i = getopt_long(argc, argv, "D:c:d:", 0, &optind)) != -1)
+	while ((i = getopt_long(argc, argv, "D:c:d:s:w:p:", 0, &optind)) != -1)
 		switch (i) {
+		case 's':
+			samplerate = atoi(optarg);
+			break;
 		case 'c':
 			hwbufsize = atoi(optarg);
 			break;
@@ -40,6 +43,12 @@ int main(int argc, char *argv[])
 			break;
 		case 'D':
 			sleep = atoi(optarg);
+			break;
+		case 'p':
+			period = atoi(optarg);
+			break;
+		case 'w':
+			wakeup_nsec = atol(optarg);
 			break;
 		default:
 			fprintf(stderr, "ERROR: Unknown arg '%c'\n", i);
@@ -50,6 +59,9 @@ int main(int argc, char *argv[])
 		fprintf(stderr, "ERROR: Must supply a pcm device using '-d' option\n");
 		exit(2);
 	}
+
+	if (!wakeup_nsec)
+		wakeup_nsec = 1000000000 / (samplerate / period) + 1;
 
 	/* setup sound device */
 	snd_pcm_hw_params_malloc(&hwparams);
@@ -73,7 +85,7 @@ int main(int argc, char *argv[])
 		fprintf(stderr, "playhrt: Error setting format.\n");
 		exit(9);
 	}
-	if (snd_pcm_hw_params_set_rate(pcm_handle, hwparams, RATE, 0) < 0) {
+	if (snd_pcm_hw_params_set_rate(pcm_handle, hwparams, samplerate, 0) < 0) {
 		fprintf(stderr, "playhrt: Error setting rate.\n");
 		exit(10);
 	}
@@ -81,8 +93,8 @@ int main(int argc, char *argv[])
 		fprintf(stderr, "playhrt: Error setting channels to %d.\n", NRCHANNELS);
 		exit(11);
 	}
-	if (snd_pcm_hw_params_set_period_size(pcm_handle, hwparams, PERIODSIZE, 0) < 0) {
-		fprintf(stderr, "playhrt: Error setting period size to %ld.\n", PERIODSIZE);
+	if (snd_pcm_hw_params_set_period_size(pcm_handle, hwparams, period, 0) < 0) {
+		fprintf(stderr, "playhrt: Error setting period size to %ld.\n", period);
 		exit(11);
 	}
 	if (snd_pcm_hw_params_set_buffer_size(pcm_handle, hwparams, hwbufsize) < 0) {
@@ -109,18 +121,19 @@ int main(int argc, char *argv[])
 	}
 
 	while (1) {
-		frames = PERIODSIZE;
+		frames = period;
 
 		avail = snd_pcm_avail(pcm_handle);
-		if (avail < PERIODSIZE)
+
+		if (avail < period)
 			continue;
 
-		if (avail < 0) {
+		if ((int)avail < 0) {
 			fprintf(stderr, "ERROR: %s (%ld)\n", strerror(errno), errno);
 			break;
 		}
 
-		if (!started && avail <= PERIODSIZE) {
+		if (!started && (hwbufsize - avail) > period) {
 			snd_pcm_start(pcm_handle);
 			started = 1;
 		}
@@ -138,7 +151,7 @@ int main(int argc, char *argv[])
 			break;
 
 		/* compute time for next wakeup */
-		mtime.tv_nsec += WAKEUP_NSEC;
+		mtime.tv_nsec += wakeup_nsec;
 		if (mtime.tv_nsec > 999999999) {
 			mtime.tv_nsec -= 1000000000;
 			mtime.tv_sec++;

@@ -25,6 +25,8 @@ cleanup() {
 
 trap 'cleanup >/dev/null 2>&1' EXIT
 
+samplerate=384000
+
 IFS=$'\n'
 for file in $audio_files; do
     [ -f $tmpdir/do_exit ] && exit 0
@@ -33,17 +35,20 @@ for file in $audio_files; do
 
     pipe-size $tmpdir/unpack_fifo $((2**29)) & # 2^25 ~ 33 mb
     taskset -c 1,2 chrt -f 60 sox "$file" -t raw -e float -b 64 $tmpdir/unpack_fifo &
-    taskset -c 1,2 chrt -f 70 resample_soxr -i $fsrate -b 131072 \
+    taskset -c 1,2 chrt -f 70 resample_soxr -i $fsrate -o $samplerate -b 131072 \
 	    <$tmpdir/unpack_fifo >$tmpdir/repack_fifo
 done &
 
 pipe-size $tmpdir/repack_fifo $((2**24)) & # 2^24 ~ 16 mb
 pipe-size $tmpdir/playhrt_fifo $((2**23)) & # 2^23 ~ 8 mb
 
-taskset -c 1,2 chrt -f 80 sox -t raw -e float -b 64 -c 2 -r 192000 \
+taskset -c 1,2 chrt -f 80 sox -t raw -e float -b 64 -c 2 -r $samplerate \
 	$tmpdir/repack_fifo -e signed -b 32 -t raw $tmpdir/playhrt_fifo &
 
 taskset -c 3 chrt -f 99 playhrt < $tmpdir/playhrt_fifo \
      -d hw:0,0 \
-     -c 96 \
-     -D 1500000
+     -c 192 \
+     -p 64 \
+     -w 166668 \
+     -s $samplerate \
+     -D 2000000

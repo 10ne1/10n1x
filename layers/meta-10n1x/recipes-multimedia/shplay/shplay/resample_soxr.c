@@ -26,10 +26,13 @@ int main(int argc, char *argv[])
   outrate = 192000.0;
   nch = 2;
   blen = 8192;
-  while ((optc = getopt_long(argc, argv, "i:b:", 0, &optind)) != -1) {
+  while ((optc = getopt_long(argc, argv, "i:o:b:", 0, &optind)) != -1) {
       switch (optc) {
       case 'i':
         inrate = atof(optarg);
+        break;
+      case 'o':
+        outrate = atof(optarg);
         break;
       case 'b':
         blen = atoi(optarg);
