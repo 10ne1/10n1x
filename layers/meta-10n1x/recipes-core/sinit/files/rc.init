@@ -49,16 +49,14 @@ iw dev wlan0 set power_save off
 wpa_supplicant -d -B -i wlan0 -c /etc/wpa_supplicant/wpa_supplicant-wlan0.conf > /var/log/wpa_supplicant.log 2>&1 &
 dhcpcd >/dev/null 2>&1 &
 
-(sleep 30
-logger -t "rc.init" "Mounting remote filesystems..."
-mount -a -O _netdev) &
+(sleep 130
+logger -t "rc.init" "Synchronizing system clock..."
+/usr/sbin/ntpd -qg) &
 
 logger -t "rc.init" "Starting sshd..."
 mkdir -p /var/run/sshd
 /usr/sbin/sshd &
 
-logger -t "rc.init" "Starting ntpd..."
-/usr/sbin/ntpd &
 
 logger -t "rc.init" "Running agetty..."
 while true; do
