@@ -18,7 +18,7 @@ inherit allarch useradd extrausers
 
 USERADD_PACKAGES = "${PN}"
 
-USERADD_PARAM_${PN} = " -u 1111 -m -s /bin/bash -G audio,video,games,tty,lp,shutdown -P ${USER} ${USER}; "
+USERADD_PARAM_${PN} = " -u 1000 -m -s /bin/bash -G audio,video,games,tty,lp,shutdown -P ${USER} ${USER}; "
 
 do_install() {
 	install -d ${D}/home/${USER}/{music,.ssh}
@@ -49,3 +49,5 @@ FILES_${PN} += "\
 	/home/root/.ssh/id_rsa \
 	/home/root/.ssh/config \
 "
+
+INSANE_SKIP_${PN} += "host-user-contaminated"
