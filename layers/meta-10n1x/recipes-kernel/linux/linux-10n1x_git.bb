@@ -27,7 +27,7 @@ COMPATIBLE_MACHINE = "^rpi|x64$"
 CMDLINE = "console=tty1 loglevel=7 logo.nologo"
 CMDLINE_append_raspberrypi3 += "root=/dev/mmcblk0p2 rootfstype=ext4 rootwait isolcpus=3"
 
-DEPENDS_append_raspberrypi3 += "linux-firmware"
+DEPENDS_append_raspberrypi3 += "linux-firmware-rpidistro"
 
 do_compile_prepend_raspberrypi3() {
 	cp -arv ${STAGING_DIR_TARGET}/usr/lib/firmware/brcm/ ${S}/firmware
