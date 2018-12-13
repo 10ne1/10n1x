@@ -21,7 +21,7 @@ USERADD_PACKAGES = "${PN}"
 USERADD_PARAM_${PN} = " -u 1000 -m -s /bin/bash -G audio,video,games,tty,lp,shutdown -P ${USER} ${USER}; "
 
 do_install() {
-	install -d ${D}/home/${USER}/{music,.ssh}
+	install -d ${D}/home/${USER}/{.ssh,ssh_nas,nfs_nas}
 	install -d ${D}/home/root/.ssh
 
 	install -m 0644 ${WORKDIR}/id_rsa.pub		${D}/home/${USER}/.ssh/
@@ -45,7 +45,8 @@ FILES_${PN} += "\
 	/home/${USER}/.ssh/id_rsa \
 	/home/${USER}/.ssh/authorized_keys \
 	/home/${USER}/.ssh/config \
-	/home/${USER}/music \
+	/home/${USER}/ssh_nas \
+	/home/${USER}/nfs_nas \
 	/home/root/.ssh/id_rsa \
 	/home/root/.ssh/config \
 "
