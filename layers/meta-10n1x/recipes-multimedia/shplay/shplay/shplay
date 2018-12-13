@@ -25,15 +25,10 @@ cleanup() {
 
 trap 'cleanup >/dev/null 2>&1' EXIT
 
-sample_rate=384000
-wakeup_int=166668
-frames_period=64
-hwbuf_size=192
-
-#sample_rate=192000
-#wakeup_int=166667
-#frames_period=32
-#hwbuf_size=96
+sample_rate=192000
+wakeup_int=166667
+frames_period=32
+hwbuf_size=96
 
 IFS=$'\n'
 for file in $audio_files; do
