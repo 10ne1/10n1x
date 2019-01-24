@@ -1,1 +1,2 @@
+#!/bin/bash
 amixer sset Digital "$@"
