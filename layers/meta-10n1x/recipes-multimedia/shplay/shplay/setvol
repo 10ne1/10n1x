@@ -1,14 +1,15 @@
 #!/bin/bash
 
-if (( $# != 1 )); then
+if [ "$#" -ge 2 ]; then
     echo "Illegal number of parameters"
-    echo "Usage: $0 <volume-number>"
+    echo "Usage: $0 [<volume-number>]"
     exit 1
+elif [ "$#" -eq 1 ]; then
+    if [ "$1" -ge 120 ]; then
+	echo "Volume too high"
+	exit 1
+    fi
+    amixer sset Digital "$1" >/dev/null
+else
+    amixer sget Digital | grep ': Playback .* \[' | awk '{print $4}' | head -1
 fi
-
-if [ "$1" -ge 120 ]; then
-    echo "ERROR: Volume value $1 is too high"
-    exit 1
-fi
-
-amixer sset Digital "$@"
