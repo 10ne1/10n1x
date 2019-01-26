@@ -18,8 +18,10 @@ mkfifo $tmpdir/{unpack,repack,playhrt}_fifo
 cleanup() {
     touch $tmpdir/do_exit
     fuser -k -w $tmpdir/{unpack,repack,playhrt}_fifo
-    pkill pipe-size
+    pkill playhrt
     pkill sox
+    pkill pipe-size
+    pkill resample_soxr
     pkill shplay
 }
 
@@ -55,3 +57,5 @@ taskset -c 3 chrt -f 99 playhrt < $tmpdir/playhrt_fifo \
      -w $wakeup_int \
      -s $sample_rate \
      -D 3000000
+
+cleanup
