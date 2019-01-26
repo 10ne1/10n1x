@@ -1,20 +1,23 @@
 DESCRIPTION = "Basic user configuration"
-HOMEPAGE = "https://github.com/10ne1/meta-ionel"
+HOMEPAGE = "https://github.com/10ne1/10n1x"
 
 LICENSE = "MIT"
-LIC_FILES_CHKSUM = "file://${WORKDIR}/id_rsa.gpg;md5=9889c38d232f8998e6a573e899e83235"
+LIC_FILES_CHKSUM = "file://${WORKDIR}/ssh_config;md5=b72ac72df37b001f03952d7e4adb8fe2"
 
 # these keys are examples, add your own here
 SRC_URI = "\
-	file://id_rsa.gpg \
-	file://id_rsa.pub \
+	git:///home/adi/workspace/random-dev;protocol=file \
 	file://authorized_keys \
 	file://ssh_config \
 "
 
+SRCREV = "${AUTOREV}"
+
 DEPENDS += "gnupg-native"
 
 inherit allarch useradd extrausers
+
+S = "${WORKDIR}/git"
 
 USERADD_PACKAGES = "${PN}"
 
@@ -24,20 +27,21 @@ do_install() {
 	install -d ${D}/home/${USER}/{.ssh,ssh_nas,nfs_nas}
 	install -d ${D}/home/root/.ssh
 
-	install -m 0644 ${WORKDIR}/id_rsa.pub		${D}/home/${USER}/.ssh/
 	install -m 0644 ${WORKDIR}/authorized_keys 	${D}/home/${USER}/.ssh/
 	install -m 0644 ${WORKDIR}/ssh_config		${D}/home/${USER}/.ssh/config
 	install -m 0644 ${WORKDIR}/ssh_config		${D}/home/root/.ssh/config
 
-	gpg --output ${WORKDIR}/id_rsa --decrypt ${WORKDIR}/id_rsa.gpg
-	install -m 0600 ${WORKDIR}/id_rsa ${D}/home/${USER}/.ssh/id_rsa
-	install -m 0600 ${WORKDIR}/id_rsa ${D}/home/root/.ssh/id_rsa
-	rm ${WORKDIR}/id_rsa
+	install -m 0600 ${S}/10n1x/rpi_id_rsa		${D}/home/${USER}/.ssh/id_rsa
+	install -m 0644 ${S}/10n1x/rpi_id_rsa.pub	${D}/home/${USER}/.ssh/id_rsa.pub
+	install -m 0600 ${S}/10n1x/rpi_id_rsa		${D}/home/root/.ssh/id_rsa
 
 	chown -R ${USER}:${GROUP} ${D}/home/${USER}
 
 	install -d ${D}${sysconfdir}/sudoers.d
 	echo "${USER} ALL=(ALL) NOPASSWD: ALL" > ${D}${sysconfdir}/sudoers.d/001_${USER}
+
+	install -d ${D}${sysconfdir}/wpa_supplicant
+	install -m 0644 ${S}/10n1x/wpa_supplicant-wlan0.conf ${D}${sysconfdir}/wpa_supplicant
 }
 
 FILES_${PN} += "\
