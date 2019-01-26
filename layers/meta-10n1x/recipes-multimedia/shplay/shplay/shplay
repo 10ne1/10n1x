@@ -54,4 +54,4 @@ taskset -c 3 chrt -f 99 playhrt < $tmpdir/playhrt_fifo \
      -p $frames_period \
      -w $wakeup_int \
      -s $sample_rate \
-     -D 2000000
+     -D 3000000
