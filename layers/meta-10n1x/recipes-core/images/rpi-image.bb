@@ -54,11 +54,8 @@ IMAGE_INSTALL += " \
 	wpa-supplicant \
 "
 
+IMAGE_INSTALL_append_rock-pi-4 += "\
+	linux-firmware-bcm43456 \
+"
+
 IMAGE_FEATURES += "package-management"
-
-set_user_pass() {
-	NEWLINE=$(cat ${IMAGE_ROOTFS}/etc/shadow | awk -F: -v pass='$6$CGK6SHL6.PJyFk8O$jyOO8BxvxSUfQE6a50SQOmUn3ouAW.z03fWFg69il3bTp7BMFcmc.hZ23z3hPlxlJ2wfJzduFHVGR65NZDBbQ.' '$1 ~ /${USER}/ {$2 = pass; print $0}' OFS=:)
-	sed -i '/${USER}/c\'"$NEWLINE" ${IMAGE_ROOTFS}/etc/shadow
-}
-
-ROOTFS_POSTPROCESS_COMMAND += "set_user_pass; "
