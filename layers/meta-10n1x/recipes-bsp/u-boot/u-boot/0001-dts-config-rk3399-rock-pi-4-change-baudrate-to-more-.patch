@@ -1,0 +1,41 @@
+From c72664d8bbc47dc4ceac8a6e16c0b02da30c2128 Mon Sep 17 00:00:00 2001
+From: Adrian Ratiu <adrian.ratiu@collabora.com>
+Date: Thu, 15 Oct 2020 22:36:49 +0300
+Subject: [PATCH] dts/config: rk3399-rock-pi-4: change baudrate to more common
+ value
+
+Signed-off-by: Adrian Ratiu <adrian.ratiu@collabora.com>
+---
+ arch/arm/dts/rk3399-rock-pi-4.dts  | 2 +-
+ configs/rock-pi-4-rk3399_defconfig | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/arch/arm/dts/rk3399-rock-pi-4.dts b/arch/arm/dts/rk3399-rock-pi-4.dts
+index 4a543f2117..bfb0640078 100644
+--- a/arch/arm/dts/rk3399-rock-pi-4.dts
++++ b/arch/arm/dts/rk3399-rock-pi-4.dts
+@@ -15,7 +15,7 @@
+ 	compatible = "radxa,rockpi4", "rockchip,rk3399";
+ 
+ 	chosen {
+-		stdout-path = "serial2:1500000n8";
++		stdout-path = "serial2:115200n8";
+ 	};
+ 
+ 	clkin_gmac: external-gmac-clock {
+diff --git a/configs/rock-pi-4-rk3399_defconfig b/configs/rock-pi-4-rk3399_defconfig
+index 2c01bf1f87..2fbbed6186 100644
+--- a/configs/rock-pi-4-rk3399_defconfig
++++ b/configs/rock-pi-4-rk3399_defconfig
+@@ -40,7 +40,7 @@ CONFIG_REGULATOR_PWM=y
+ CONFIG_REGULATOR_RK8XX=y
+ CONFIG_PWM_ROCKCHIP=y
+ CONFIG_RAM_RK3399_LPDDR4=y
+-CONFIG_BAUDRATE=1500000
++CONFIG_BAUDRATE=115200
+ CONFIG_DEBUG_UART_SHIFT=2
+ CONFIG_SYSRESET=y
+ CONFIG_USB=y
+-- 
+2.28.0
+
