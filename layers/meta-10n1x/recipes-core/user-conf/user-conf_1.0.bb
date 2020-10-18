@@ -29,6 +29,7 @@ do_install() {
 
 	install -m 0644 ${WORKDIR}/authorized_keys 	${D}/home/${USER}/.ssh/
 	install -m 0644 ${WORKDIR}/ssh_config		${D}/home/${USER}/.ssh/config
+	install -m 0644 ${WORKDIR}/authorized_keys 	${D}/home/root/.ssh/
 	install -m 0644 ${WORKDIR}/ssh_config		${D}/home/root/.ssh/config
 
 	install -m 0600 ${S}/10n1x/rpi_id_rsa		${D}/home/${USER}/.ssh/id_rsa
@@ -53,6 +54,7 @@ FILES_${PN} += "\
 	/home/${USER}/nfs_nas \
 	/home/root/.ssh/id_rsa \
 	/home/root/.ssh/config \
+	/home/root/.ssh/authorized_keys \
 "
 
 INSANE_SKIP_${PN} += "host-user-contaminated"
