@@ -1,14 +1,9 @@
 FILESEXTRAPATHS_prepend := "${THISDIR}/${PN}:"
 
-hostname="ionelpi"
-
-do_install_append() {
-}
+hostname="${MACHINE}"
 
 do_install_basefilesissue () {
-	if [ "${hostname}" ]; then
-		echo ${hostname} > ${D}${sysconfdir}/hostname
-	fi
+	echo ${hostname} > ${D}${sysconfdir}/hostname
 
 	install -m 644 ${WORKDIR}/issue	${D}${sysconfdir}
 	printf "Welcome to 10n1x \\\l\n\n"		>> ${D}${sysconfdir}/issue
