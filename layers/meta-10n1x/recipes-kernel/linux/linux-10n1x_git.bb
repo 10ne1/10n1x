@@ -12,7 +12,7 @@ SRCREV = "${AUTOREV}"
 PV = "${LINUX_VERSION}+git${SRCPV}"
 
 SRC_URI = "\
-	git://github.com/10ne1/linux;branch=linux-${LINUX_VERSION}.y \
+	git:///home/adi/workspace/linux-arm;branch=rpi-5.0.4;protocol=file \
 	file://defconfig \
 "
 
