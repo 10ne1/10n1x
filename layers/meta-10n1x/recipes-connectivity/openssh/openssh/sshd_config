@@ -41,7 +41,7 @@ HostKey /etc/ssh/ssh_host_ed25519_key
 # Authentication:
 
 #LoginGraceTime 2m
-PermitRootLogin no
+PermitRootLogin without-password
 #StrictModes yes
 #MaxAuthTries 6
 #MaxSessions 10
@@ -94,7 +94,7 @@ ChallengeResponseAuthentication no
 # If you just want the PAM account and session checks to run without
 # PAM authentication, then enable this but set PasswordAuthentication
 # and ChallengeResponseAuthentication to 'no'.
-#UsePAM no
+UsePAM yes
 
 #AllowAgentForwarding yes
 #AllowTcpForwarding yes
